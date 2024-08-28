@@ -6,10 +6,11 @@ import os
 import numpy as np
 import pandas as pd
 
-from scripts.RGTools.BedTable import BedTable3, \
-                                     BedTable6, \
-                                     BedTable6Plus, \
-                                     BedTablePairEnd
+from ..BedTable import BedTable3, \
+                       BedTable6, \
+                       BedTable6Plus, \
+                       BedTablePairEnd
+
 
 class TestBedTable(unittest.TestCase):
     # Public methods for testing BedTable
