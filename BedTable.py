@@ -115,10 +115,12 @@ class BedTable3:
         Use a logical np.array to filter the table.
         Return a new BedTable3 instance.
         '''
-        if not isinstance(logical_array, np.ndarray):
-            raise ValueError("logical_array must be a np.array")
-        if not logical_array.dtype == bool:
-            raise ValueError("logical_array must be a boolean np.array")
+        # input check removed for compatibility with newer pandas version
+        #TODO: add updated input check
+        # if not isinstance(logical_array, np.ndarray):
+        #     raise ValueError("logical_array must be a np.array")
+        # if not logical_array.dtype == bool:
+        #     raise ValueError("logical_array must be a boolean np.array")
 
         new_bed_table = self._clone_empty()
         new_bed_table.load_from_dataframe(self._data_df.loc[logical_array])
