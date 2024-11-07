@@ -319,16 +319,10 @@ class BedTable3:
         '''
         Check if the table is sorted.
         '''
-        for i in range(1, len(self._data_df)):
-            if self._data_df.iloc[i]["chrom"] < self._data_df.iloc[i-1]["chrom"]:
+        for i in range(1, len(self)):
+            if self.get_region_by_index(i) < self.get_region_by_index(i-1):
                 return False
-            if self._data_df.iloc[i]["chrom"] == self._data_df.iloc[i-1]["chrom"]:
-                if self._data_df.iloc[i]["start"] < self._data_df.iloc[i-1]["start"]:
-                    return False
-                if self._data_df.iloc[i]["start"] == self._data_df.iloc[i-1]["start"]:
-                    if self._data_df.iloc[i]["end"] < self._data_df.iloc[i-1]["end"]:
-                        return False
-
+        
         return True
 
     def _dtype2pddtype(self, dtype_dict):

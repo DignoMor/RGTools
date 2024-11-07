@@ -193,6 +193,16 @@ class TestBedTable3(TestBedTable):
         self.assertArrayEqual(result_bed_table.subset_by_index(np.array([1, 3, 6])).to_dataframe().values,
                               new_bed_table.to_dataframe().values,
                               )
+    
+    def test_is_sorted(self):
+        bed_table = self.__init_test_bed_table()
+        bed_table._data_df.loc[0, "chrom"] = "chr21"
+
+        self.assertFalse(bed_table._is_sorted())
+
+        bed_table._sort()
+
+        self.assertTrue(bed_table._is_sorted())
 
     def test_sort(self):
         bed_table = BedTable3()
