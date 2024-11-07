@@ -6,6 +6,9 @@ import pandas as pd
 
 from .exceptions import BedTableLoadException
 
+# Opt in future pd features
+pd.set_option('future.no_silent_downcasting', True)
+
 # Only pd.Int64Dtype(), np.float64, and "O" are supported in this class
 TYPE2PDDTYPE = {int: pd.Int64Dtype(), 
                 np.int32: pd.Int64Dtype(),
