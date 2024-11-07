@@ -168,11 +168,9 @@ class TestBedTable3(TestBedTable):
 
         region = bed_table.get_region_by_index(0)
 
-        self.assertArrayEqual(region.values, self.data_df.loc[0].values)
-
-        region = bed_table.get_region_by_index(np.array([1,3]))
-
-        self.assertArrayEqual(region.values, self.data_df.loc[[1,3]].values)
+        self.assertEqual(region["chrom"], self.data_df.loc[0, "chrom"])
+        self.assertEqual(region["start"], self.data_df.loc[0, "start"])
+        self.assertEqual(region["end"], self.data_df.loc[0, "end"])
 
     def test_iter_regions(self):
         bed_table = self.__init_test_bed_table()

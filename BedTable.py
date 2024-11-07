@@ -42,6 +42,51 @@ class BedTableIterator:
             self.__index += 1
             return region
 
+class BedRegion:
+    '''
+    A region type for bed file entires. 
+    
+    Enable easy access to bed file entries.
+    - dict like access of chrom, start, end and other fields
+    - support for comparison operations
+    '''
+    def __init__(self, chrom, start, end, **other_fields):
+        self.__data_dict = {"chrom": chrom, "start": start, "end": end}
+        self.__data_dict.update(other_fields)
+
+    def __getitem__(self, key):
+        return self.__data_dict[key]
+
+    def __lt__(self, other):
+        if self["chrom"] < other["chrom"]:
+            return True
+        elif self["chrom"] > other["chrom"]:
+            return False
+
+        # self["chrom"] == other["chrom"] case
+        if self["start"] < other["start"]:
+            return True
+        elif self["start"] > other["start"]:
+            return False
+        
+        # chrom and start are all the same
+        return self["end"] < other["end"]
+    
+    def __eq__(self, other):
+        return (self["chrom"] == other["chrom"]) and (self["start"] == other["start"]) and (self["end"] == other["end"])
+    
+    def __ne__(self, other):
+        return not (self == other)
+        
+    def __gt__(self, other):
+        return not ((self < other) or (self == other))
+    
+    def __le__(self, other):
+        return (self < other) or (self == other)
+    
+    def __gt__(self, other):
+        return not (self < other) and not (self == other)
+
 class BedTable3:
     def __init__(self):
         self._data_df = pd.DataFrame(columns=self.column_names)
@@ -202,7 +247,10 @@ class BedTable3:
         '''
         Return a region by index.
         '''
-        return self._data_df.iloc[index]
+        region_series = self._data_df.iloc[index]
+
+        return BedRegion(**region_series.to_dict()
+                         )
     
     def iter_regions(self) -> tuple:
         '''
