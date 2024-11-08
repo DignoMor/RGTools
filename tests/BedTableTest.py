@@ -250,12 +250,25 @@ class TestBedTable3(TestBedTable):
         
         self.assertArrayEqual(region_idx, np.array([]))
 
+    def test_search_array(self):
+        test_array = np.array(range(10))
+
+        self.assertEqual(BedTable3._search_array(test_array, 5), (4 ,6))
+        self.assertEqual(BedTable3._search_array(test_array, 4.5), (4 ,5))
+
+        test_array[5] = 4
+
+        self.assertEqual(BedTable3._search_array(test_array, 4), (3, 6))
+
+        self.assertEqual(BedTable3._search_array(test_array, 100), (9, 10))
+        self.assertEqual(BedTable3._search_array(test_array, -1), (-1, 0))
+
     def __init_test_bed_table(self) -> BedTable3:
         bed_table = BedTable3()
         bed_table.load_from_file(self.data_file)
 
         return bed_table
-
+    
 class TestBedTable6(TestBedTable):
     def setUp(self) -> None:
         super().setUp()

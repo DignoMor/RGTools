@@ -346,6 +346,51 @@ class BedTable3:
 
     def __len__(self) -> int:
         return self._data_df.shape[0]
+    
+    @staticmethod
+    def _search_array(array: np.array, value) -> np.array:
+        '''
+        Search for a value in an sorted array and return 2 indexes.
+        ind1 will be the index for last element smaller than value, 
+        and ind2 will be the index for first element larger than value.
+
+        If the first element is larger than value, ind1 will be -1.
+        If the last element is smaller than value, ind2 will be len(array).
+
+        Keyword arguments:
+        - array: a np.array
+        - value: the value to search
+
+        Return a tuple of two integers.
+        '''
+        # binary search for ind 1
+        search_start = -1
+        search_end = len(array)
+
+        while search_start+1 < search_end:
+            new_ind = (search_start + search_end) // 2
+            if array[new_ind] < value:
+                search_start = new_ind
+            else:
+                search_end = new_ind
+        
+        ind1 = search_start
+
+        # binary search for ind 2
+        search_start = -1
+        search_end = len(array)
+
+        while search_start+1 < search_end:
+            new_ind = (search_start + search_end) // 2
+            if array[new_ind] <= value:
+                search_start = new_ind
+            else:
+                search_end = new_ind
+        
+        ind2 = search_end
+
+        return ind1, ind2
+
 
 class BedTable6(BedTable3):
     def __init__(self):
@@ -401,7 +446,7 @@ class BedTable6(BedTable3):
         self._data_df["strand"] = "."
 
         self._force_dtype()
-
+    
 class BedTable6Plus(BedTable6):
     def __init__(self, 
                  extra_column_names: list,
