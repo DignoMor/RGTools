@@ -269,16 +269,25 @@ class BedTable3:
         - end: end location
         - overlapping_base: the number of overlapping bases required for a match
         '''
-        #TODO: binary search to speed up
-        # subset the data to the given chrom
-        temp_df = self._data_df.loc[self._data_df["chrom"] == chrom]
+        # first narrow down with chrom
+        chrom_left_bound, chrom_right_bound = self._search_array(self.get_chrom_names(), chrom)
+        chrom_left_bound += 1
 
-        # subset the data by start
-        temp_df = temp_df.loc[end - temp_df["start"] >= overlapping_base]
+        search_bt = self.subset_by_index(np.arange(chrom_left_bound, chrom_right_bound))
 
-        # subset the data by end
-        temp_df = temp_df.loc[temp_df["end"] - start >= overlapping_base]
-        return np.array(temp_df.index)
+        # then narrow down with end
+        end_left_bound, end_right_bound = self._search_array(search_bt.get_start_locs(), end)
+
+        search_space = [chrom_left_bound, chrom_left_bound + end_left_bound + 1]
+
+        result_inds = []
+        for i in range(search_space[0], search_space[1]):
+            region = self.get_region_by_index(i)
+
+            if region["end"] - start >= overlapping_base and end - region["start"] >= overlapping_base:
+                result_inds.append(i)
+        
+        return np.array(result_inds, dtype=int)
     
     def concat(self, other_bed_table):
         '''
