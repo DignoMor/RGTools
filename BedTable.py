@@ -54,6 +54,9 @@ class BedRegion:
         self.__data_dict = {"chrom": chrom, "start": start, "end": end}
         self.__data_dict.update(other_fields)
 
+    def to_dict(self):
+        return self.__data_dict.copy()
+
     def __getitem__(self, key):
         return self.__data_dict[key]
 
