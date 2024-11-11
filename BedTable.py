@@ -1,13 +1,12 @@
 
 # bed table classes to store bed files as pd.DataFrame
 
+import sys
+
 import numpy as np
 import pandas as pd
 
 from .exceptions import BedTableLoadException
-
-# Opt in future pd features
-pd.set_option('future.no_silent_downcasting', True)
 
 # Only pd.Int64Dtype(), np.float64, and "O" are supported in this class
 TYPE2PDDTYPE = {int: pd.Int64Dtype(), 
@@ -221,6 +220,9 @@ class BedTable3:
             else:
                 df2write[col] = df2write[col].astype(pd.StringDtype())
                 df2write[col] = df2write[col].fillna(".")
+
+        if opath == "stdout":
+            opath = sys.stdout
 
         df2write.to_csv(opath, 
                         sep="\t", 
