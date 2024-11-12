@@ -120,6 +120,9 @@ class BedTable3:
         '''
         Load a bed file.
         '''
+        if ipath == "-" or ipath == "stdin":
+            ipath = sys.stdin
+
         try:
             self._data_df = pd.read_csv(ipath, 
                                         sep="\t", 
