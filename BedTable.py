@@ -27,6 +27,9 @@ PDDTYPE2NANVAL = {pd.Int64Dtype(): np.nan,
 
 class BedTableIterator:
     def __init__(self, bed_table: 'BedTable3') -> None:
+        '''
+        Create a iterator for a BedTable instance.
+        '''
         self.__bed_table = bed_table
         self.__index = 0
 
@@ -91,17 +94,24 @@ class BedRegion:
 
 class BedTable3:
     def __init__(self):
+        '''
+        Create a BedTable3 instance.
+        '''
         self._data_df = pd.DataFrame(columns=self.column_names)
 
     # public methods
     @property
     def column_names(self):
+        '''
+        List of column names used in the data table underlining the class.
+        '''
         return ["chrom", "start", "end"]
     
     @property
     def column_types(self):
         '''
-        A dictionary of column types.
+        A dictionary of column types. 
+        Maps each column name to the corresponding data type.
         '''
         dtype_dict = {"chrom": str, "start": int, "end": int}
         
@@ -110,15 +120,27 @@ class BedTable3:
     
     @property
     def extra_column_names(self):
+        '''
+        List of extra column names used in the data table underlining the class 
+        that are not standard bed file columns.
+        '''
         return []
     
     @property
     def extra_column_dtype(self):
+        '''
+        List of extra column data types used in the data table underlining the class
+        that are not standard bed file columns.
+        '''
         return []
 
     def load_from_file(self, ipath: str) -> None:
         '''
         Load a bed file.
+
+        Keyword arguments:
+        - ipath: the path to the bed file.
+                 If ipath is "-", read from stdin.
         '''
         if ipath == "-" or ipath == "stdin":
             ipath = sys.stdin
@@ -214,6 +236,9 @@ class BedTable3:
     def write(self, opath: str) -> None:
         '''
         Write the table to a bed file.
+
+        - opath: the path to the output bed file.
+                    If opath is "stdout", write to stdout.
         '''
         df2write = self._data_df.copy()
 
