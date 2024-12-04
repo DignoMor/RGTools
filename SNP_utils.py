@@ -56,7 +56,7 @@ class EnsemblRestSearch:
         - the rsid of the SNP at that location
         '''
         ext = "/overlap/region/{}/{}:{:d}-{:d}?feature=variation".format(self.species,
-                                                                         chrom.replace("chr", ""), 
+                                                                         str(chrom).replace("chr", ""), 
                                                                          pos, 
                                                                          pos, 
                                                                          )

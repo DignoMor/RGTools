@@ -25,7 +25,7 @@ class TestEnsemblRestSearch(unittest.TestCase):
 
     def test_get_rsid_from_location(self):
 
-        chrom = "1"
+        chrom = 1
         pos = 161155392
 
         search_engine = EnsemblRestSearch(genome_version="hg19")
