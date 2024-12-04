@@ -5,6 +5,20 @@ class EnsemblRestSearch:
     def __init__(self, genome_version='hg38', 
                  species='human', 
                  ):
+        '''
+        Construct a search object for Ensembl REST API. 
+        
+        Keyword arguments:
+        - genome_version: the genome version to search for. 
+          Currently supported versions are:
+          - hg38 or GRCh38
+          - hg19 or GRCh37
+          
+          - species: the species to search for. 
+          
+          Return:
+          - An EnsemblRestSearch object
+        '''
 
         if not genome_version in self.genome_version2url_dict.keys():
             raise Exception("Genome version not supported: {}".format(genome_version))
@@ -101,6 +115,10 @@ class EnsemblRestSearch:
 
     @property
     def genome_version2url_dict(self):
+        '''
+        A dictionary mapping genome version to the corresponding
+        Ensembl REST API URL.
+        '''
         return {
             "hg38": "https://rest.ensembl.org",
             "GRCh38": "https://rest.ensembl.org",
