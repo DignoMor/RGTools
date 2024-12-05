@@ -31,7 +31,10 @@ class EnsemblRestSearch:
     def get_rsid_info(self, rsid: str):
         '''
         Get all the info of a given rsid, 
-        and return a dictionary.
+        and return a dictionary. This methods 
+        returns the unmodified full response 
+        from ENSEMBL REST API. The coordinates 
+        in this response are 1-based and closed.
 
         Keyword arguments:
         - rsid: the rsid to search for
@@ -64,11 +67,13 @@ class EnsemblRestSearch:
 
         Keyword arguments:
         - chrom: the chromosome to search for
-        - pos: the position to search for
+        - pos: the position to search for. This is 0-based.
 
         Return:
         - the rsid of the SNP at that location
         '''
+        # ENSEMBL REST API uses 1-based position
+        pos += 1
         ext = "/overlap/region/{}/{}:{:d}-{:d}?feature=variation".format(self.species,
                                                                          str(chrom).replace("chr", ""), 
                                                                          pos, 
@@ -96,15 +101,15 @@ class EnsemblRestSearch:
         Return:
         - a dictionary containing the following info 
           of the rsid: ["chrom", "start", "end", "bases"].
-          The start and end coordinates follows bed convention 
+          The start and end coordinates follows UCSC bed convention 
           (0-based, half-open).
         '''
         info = self.get_rsid_info(rsid)
         for mapping in info["mappings"]:
             if mapping["coord_system"] == "chromosome":
                 return {"chrom": "chr"+mapping["seq_region_name"], # UCSC format in this lib
-                        "start": mapping["start"], 
-                        "end": mapping["end"]+1,
+                        "start": mapping["start"]-1, 
+                        "end": mapping["end"],
                         "bases": mapping["allele_string"],
                         }
             

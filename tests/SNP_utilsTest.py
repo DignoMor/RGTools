@@ -11,6 +11,8 @@ class TestEnsemblRestSearch(unittest.TestCase):
         return super().tearDown()
 
     def test_get_rsid_info(self):
+        # This methods returns raw ENSEMBL REST API response
+        # Coordinates from the response are 1-based, closed
 
         rsid = "rs56116432"
 
@@ -26,7 +28,7 @@ class TestEnsemblRestSearch(unittest.TestCase):
     def test_get_rsid_from_location(self):
 
         chrom = 1
-        pos = 161155392
+        pos = 161155391 # This is 0-based position
 
         search_engine = EnsemblRestSearch(genome_version="hg19")
         rsids = search_engine.get_rsid_from_location(chrom, pos)
@@ -35,7 +37,7 @@ class TestEnsemblRestSearch(unittest.TestCase):
         self.assertIn("rs4575098", rsids)
 
         chrom = "chr1"
-        pos = 630947
+        pos = 630946
         search_engine = EnsemblRestSearch(genome_version="hg38")
         rsids = search_engine.get_rsid_from_location(chrom, pos)
 
@@ -44,7 +46,7 @@ class TestEnsemblRestSearch(unittest.TestCase):
         self.assertIn("rs2100353415", rsids)
 
         chrom = "chr1"
-        pos = 17957656
+        pos = 17957655
         search_engine = EnsemblRestSearch(genome_version="hg38")
         rsids = search_engine.get_rsid_from_location(chrom, pos)
 
@@ -69,8 +71,8 @@ class TestEnsemblRestSearch(unittest.TestCase):
         info = search_engine.get_rsid_snp_simple_info(rsid)
 
         self.assertEqual(info["chrom"], "chr9")
-        self.assertEqual(info["start"], 133256042)
-        self.assertEqual(info["end"], 133256043)
+        self.assertEqual(info["start"], 133256041)
+        self.assertEqual(info["end"], 133256042)
         self.assertEqual(info["bases"], "C/A/T")
     
     def test_prioritize_rsids(self):
@@ -81,14 +83,14 @@ class TestEnsemblRestSearch(unittest.TestCase):
 
         self.assertEqual(prioritized_rsid, "rs1390538076")
         self.assertEqual(prioritized_snp_info["chrom"], "chr1")
-        self.assertEqual(prioritized_snp_info["start"], 630947)
-        self.assertEqual(prioritized_snp_info["end"], 630948)
+        self.assertEqual(prioritized_snp_info["start"], 630946)
+        self.assertEqual(prioritized_snp_info["end"], 630947)
 
         rsids = ["rs1367061710", "rs4575098"]
         prioritized_rsid, prioritized_snp_info = search_engine.prioritize_rsids(rsids)
 
         self.assertEqual(prioritized_rsid, "rs4575098")
         self.assertEqual(prioritized_snp_info["chrom"], "chr1")
-        self.assertEqual(prioritized_snp_info["start"], 161185602)
-        self.assertEqual(prioritized_snp_info["end"], 161185603)
+        self.assertEqual(prioritized_snp_info["start"], 161185601)
+        self.assertEqual(prioritized_snp_info["end"], 161185602)
     
