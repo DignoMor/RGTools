@@ -17,7 +17,7 @@ class TestEnsemblRestSearch(unittest.TestCase):
         rsid = "rs56116432"
 
         search_engine = EnsemblRestSearch(genome_version="hg38")
-        info = search_engine.get_rsid_info(rsid)
+        info = search_engine._get_rsid_info(rsid)
 
         self.assertEqual(info['name'], rsid)
         self.assertEqual(info["mappings"][0]["location"], "9:133256042-133256042")

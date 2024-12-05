@@ -28,7 +28,7 @@ class EnsemblRestSearch:
         self.species = species
 
     # API-related methods
-    def get_rsid_info(self, rsid: str):
+    def _get_rsid_info(self, rsid: str):
         '''
         Get all the info of a given rsid, 
         and return a dictionary. This methods 
@@ -104,7 +104,7 @@ class EnsemblRestSearch:
           The start and end coordinates follows UCSC bed convention 
           (0-based, half-open).
         '''
-        info = self.get_rsid_info(rsid)
+        info = self._get_rsid_info(rsid)
         for mapping in info["mappings"]:
             if mapping["coord_system"] == "chromosome":
                 return {"chrom": "chr"+mapping["seq_region_name"], # UCSC format in this lib
