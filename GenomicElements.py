@@ -61,7 +61,7 @@ class GenomicElements:
                             )
         
         parser.add_argument("--region_file_type",
-                            help="Type of the region file."
+                            help="Type of the region file. "
                                  "Valid types: {}".format(
                                      list(GenomicElements.get_region_file_suffix2class_dict().keys())
                                      ),
@@ -75,7 +75,7 @@ class GenomicElements:
         '''
         Return a bed table object for the region file.
         '''
-        bt = self.get_region_file_suffix2class_dict()[self.region_file_type]()
+        bt = self.get_region_file_suffix2class_dict()[self.region_file_type](enable_sort=False)
         bt.load_from_file(self.region_path)
 
         return bt
