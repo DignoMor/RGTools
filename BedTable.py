@@ -6,7 +6,7 @@ import sys
 import numpy as np
 import pandas as pd
 
-from .exceptions import BedTableLoadException
+from .exceptions import BedTableLoadException, InvalidBedRegionException, InvalidStrandnessException
 
 # Only pd.Int64Dtype(), np.float64, and "O" are supported in this class
 TYPE2PDDTYPE = {int: pd.Int64Dtype(), 
@@ -88,7 +88,7 @@ class BedRegion:
             strand = "+"
         else:
             if "strand" not in self.get_fields():
-                raise ValueError(f"Strand field not found in the region while ignore_strand is False.")
+                raise InvalidStrandnessException(f"Strand field not found in the region while ignore_strand is False.")
 
             strand = self["strand"]
         
@@ -101,13 +101,13 @@ class BedRegion:
             end += upstream_padding
 
         else:
-            raise ValueError(f"Invalid strand value: {strand}")
+            raise InvalidStrandnessException(f"Invalid strand value: {strand}")
         
         if start >= end:
-            raise ValueError(f"Invalid region: {chrom}:{start}-{end}")
+            raise InvalidBedRegionException(f"Invalid region: {chrom}:{start}-{end}")
         
         if start < 0:
-            raise ValueError(f"Invalid region: {chrom}:{start}-{end}")
+            raise InvalidBedRegionException(f"Invalid region: {chrom}:{start}-{end}")
 
         return BedRegion(chrom, start, end, **{key: self[key] for key in self.other_fields})
 

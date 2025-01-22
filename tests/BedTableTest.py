@@ -12,6 +12,9 @@ from ..BedTable import BedRegion, \
                        BedTable6Plus, \
                        BedTablePairEnd
 
+from ..exceptions import InvalidBedRegionException, \
+                         InvalidStrandnessException
+
 class TestBedRegion(unittest.TestCase):
     def test_pad_region(self):
         region = BedRegion("chr1", 12, 15, name=".", score=".", strand="-")
@@ -38,22 +41,22 @@ class TestBedRegion(unittest.TestCase):
         # Test invalid strand
         region = BedRegion("chr1", 12, 15, name=".", score=".", strand=".")
 
-        with self.assertRaises(ValueError):
+        with self.assertRaises(InvalidStrandnessException):
             region.pad_region(1, 1)
 
         region = BedRegion("chr1", 12, 15, )
 
-        with self.assertRaises(ValueError):
+        with self.assertRaises(InvalidStrandnessException):
             region.pad_region(1, 1)
         
         # Test invalid padding
 
         region = BedRegion("chr1", 12, 15, name=".", score=".", strand="+")
 
-        with self.assertRaises(ValueError):
+        with self.assertRaises(InvalidBedRegionException):
             region.pad_region(-10, -1)
         
-        with self.assertRaises(ValueError):
+        with self.assertRaises(InvalidBedRegionException):
             region.pad_region(20, 1)
 
 

@@ -18,3 +18,11 @@ class BedTableException(RGToolsInternalException):
 class BedTableLoadException(BedTableException):
     def __init__(self, *args: object) -> None:
         super().__init__(*args)
+
+class InvalidBedRegionException(BedTableException):
+    def __init__(self, *args: object) -> None:
+        super().__init__(*args)
+
+class InvalidStrandnessException(BedTableException):
+    def __init__(self, *args: object) -> None:
+        super().__init__(*args)
