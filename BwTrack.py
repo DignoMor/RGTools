@@ -5,7 +5,7 @@ import sys
 import numpy as np
 
 class BwTrack:
-    def __init__(self, bw_pl_path, bw_mn_path, signle_bw=False):
+    def __init__(self, bw_pl_path, bw_mn_path, single_bw=False):
         '''
         Initialize the BwTrack object.
         
@@ -14,7 +14,7 @@ class BwTrack:
         - bw_mn_path: path to the minus strand bigwig file
         - single_bw: if there is only plus strand bigwig file
         '''
-        self.single_bw = signle_bw
+        self.single_bw = single_bw
 
         self.bw_pl = pyBigWig.open(bw_pl_path)
 
