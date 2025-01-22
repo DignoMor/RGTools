@@ -54,10 +54,62 @@ class BedRegion:
     '''
     def __init__(self, chrom, start, end, **other_fields):
         self.__data_dict = {"chrom": chrom, "start": start, "end": end}
+
+        self.other_fields = list(other_fields.keys())
         self.__data_dict.update(other_fields)
 
     def to_dict(self):
         return self.__data_dict.copy()
+    
+    def get_fields(self):
+        '''
+        Return all available fields. 
+        '''
+        return list(self.__data_dict.keys())
+    
+    def pad_region(self, upstream_padding, downstream_padding, 
+                   ignore_strand=False, 
+                   ):
+        '''
+        Add padding to the region and return a new BedRegion instance.
+
+        Keyword arguments:
+        - upstream_padding: the padding added to the upstream
+        - downstream_padding: the padding added to the downstream
+        - ignore_strand: ignore strand information, all elements will be 
+                         considered as on "+" strand.
+        '''
+        chrom = self["chrom"]
+
+        start = self["start"]
+        end = self["end"]
+
+        if ignore_strand:
+            strand = "+"
+        else:
+            if "strand" not in self.get_fields():
+                raise ValueError(f"Strand field not found in the region while ignore_strand is False.")
+
+            strand = self["strand"]
+        
+        if strand == "+":
+            start -= upstream_padding
+            end += downstream_padding
+
+        elif strand == "-":
+            start -= downstream_padding
+            end += upstream_padding
+
+        else:
+            raise ValueError(f"Invalid strand value: {strand}")
+        
+        if start >= end:
+            raise ValueError(f"Invalid region: {chrom}:{start}-{end}")
+        
+        if start < 0:
+            raise ValueError(f"Invalid region: {chrom}:{start}-{end}")
+
+        return BedRegion(chrom, start, end, **{key: self[key] for key in self.other_fields})
 
     def __getitem__(self, key):
         return self.__data_dict[key]

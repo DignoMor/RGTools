@@ -6,10 +6,55 @@ import os
 import numpy as np
 import pandas as pd
 
-from ..BedTable import BedTable3, \
+from ..BedTable import BedRegion, \
+                       BedTable3, \
                        BedTable6, \
                        BedTable6Plus, \
                        BedTablePairEnd
+
+class TestBedRegion(unittest.TestCase):
+    def test_pad_region(self):
+        region = BedRegion("chr1", 12, 15, name=".", score=".", strand="-")
+
+        padded_region = region.pad_region(1, 1)
+
+        self.assertEqual(padded_region["chrom"], "chr1")
+        self.assertEqual(padded_region["start"], 11)
+        self.assertEqual(padded_region["end"], 16)
+
+        padded_region = region.pad_region(2, -1)
+
+        self.assertEqual(padded_region["chrom"], "chr1")
+        self.assertEqual(padded_region["start"], 13)
+        self.assertEqual(padded_region["end"], 17)
+
+        padded_region = region.pad_region(2, 1, ignore_strand=True)
+
+        self.assertEqual(padded_region["chrom"], "chr1")
+        self.assertEqual(padded_region["start"], 10)
+        self.assertEqual(padded_region["end"], 16)
+        self.assertEqual(padded_region["strand"], "-")
+
+        # Test invalid strand
+        region = BedRegion("chr1", 12, 15, name=".", score=".", strand=".")
+
+        with self.assertRaises(ValueError):
+            region.pad_region(1, 1)
+
+        region = BedRegion("chr1", 12, 15, )
+
+        with self.assertRaises(ValueError):
+            region.pad_region(1, 1)
+        
+        # Test invalid padding
+
+        region = BedRegion("chr1", 12, 15, name=".", score=".", strand="+")
+
+        with self.assertRaises(ValueError):
+            region.pad_region(-10, -1)
+        
+        with self.assertRaises(ValueError):
+            region.pad_region(20, 1)
 
 
 class TestBedTable(unittest.TestCase):
