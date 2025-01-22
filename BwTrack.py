@@ -52,7 +52,7 @@ class BwTrack:
     @staticmethod
     def get_supported_quantification_type():
         '''
-        Return the list of quantification types.
+        Return the list of supported quantification types.
         '''
         return ["raw_count", "RPK"]
 
@@ -72,7 +72,7 @@ class BwTrack:
         - start: start position
         - end: end position
         - strand: strandness, "+" or "-" or "."
-        - output_type: what information is outputted [raw_count, RPK]
+        - output_type: what information is outputted (see BwTrack.get_supported_quantification_type)
         - l_pad: left padding
         - r_pad: right padding
         - min_len_after_padding: minimum length of the region after padding
