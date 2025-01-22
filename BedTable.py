@@ -93,11 +93,17 @@ class BedRegion:
         return not (self < other) and not (self == other)
 
 class BedTable3:
-    def __init__(self):
+    def __init__(self, enable_sort=True):
         '''
         Create a BedTable3 instance.
+
+        Keyword arguments:
+        - enable_sort: disable sorting. Useful when working with regions
+                       that have intrinsic order.
         '''
         self._data_df = pd.DataFrame(columns=self.column_names)
+
+        self.enable_sort = enable_sort
 
     # public methods
     @property
@@ -156,8 +162,9 @@ class BedTable3:
         
         self._force_dtype()
 
-        if not self._is_sorted():
-            self._sort()
+        if self.enable_sort:
+            if not self._is_sorted():
+                self._sort()
 
     def load_from_dataframe(self, df: pd.DataFrame, 
                             column_map=None) -> None:
@@ -182,8 +189,9 @@ class BedTable3:
         
         self._force_dtype()
 
-        if not self._is_sorted():
-            self._sort()
+        if self.enable_sort:
+            if not self._is_sorted():
+                self._sort()
 
     def apply_logical_filter(self, logical_array: np.array) -> 'BedTable3':
         '''
@@ -354,6 +362,9 @@ class BedTable3:
         '''
         Sort the bed table.
         '''
+        if not self.enable_sort:
+            raise ValueError("BedTable._sort() called when sorting is disabled.")
+
         self._data_df.sort_values(by=["chrom", "start", "end"], inplace=True)
         self._data_df.reset_index(drop=True, inplace=True)
 
@@ -435,8 +446,8 @@ class BedTable3:
 
 
 class BedTable6(BedTable3):
-    def __init__(self):
-        self._data_df = pd.DataFrame(columns=self.column_names)
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
 
     @property
     def column_names(self):
@@ -493,6 +504,7 @@ class BedTable6Plus(BedTable6):
     def __init__(self, 
                  extra_column_names: list,
                  extra_column_dtype: list = None,
+                 **kwargs, 
                  ):
         self._extra_column_names = extra_column_names
 
@@ -501,7 +513,7 @@ class BedTable6Plus(BedTable6):
         else:
             self._extra_column_dtype = extra_column_dtype
         
-        self._data_df = pd.DataFrame(columns=self.column_names)
+        super().__init__(**kwargs)
 
     @property
     def column_names(self):
@@ -550,7 +562,7 @@ class BedTablePairEnd(BedTable3):
         else:
             self._extra_column_dtype = extra_column_dtype
         
-        self._data_df = pd.DataFrame(columns=self.column_names)
+        super().__init__()
         self._other_region_inverse_index = self._build_inverse_index_for_the_other_region()
     
     def load_from_dataframe(self, df: pd.DataFrame, column_map=None) -> None:
