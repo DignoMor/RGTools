@@ -55,7 +55,7 @@ class GenomicElements:
     @staticmethod
     def set_parser_genomic_element_region(parser):
         parser.add_argument("--region_file_path", 
-                            help="Path to the region file for genomic element.",
+                            help="Path to the region file.",
                             required=True,
                             type=str, 
                             )
