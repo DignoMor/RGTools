@@ -1,4 +1,6 @@
 
+import numpy as np
+
 from .BedTable import BedTable3, BedTable6, BedTable6Plus
 
 class GenomicElements:
@@ -20,6 +22,8 @@ class GenomicElements:
         if not self.region_file_type in self.get_region_file_suffix2class_dict().keys():
             raise ValueError(f"Invalid region file type: {self.region_file_type}")
 
+        self._anno_arr_dict = {}
+        self._anno_length_dict = {}
         self.genome_path = genome_path
 
     @staticmethod
@@ -79,3 +83,59 @@ class GenomicElements:
         bt.load_from_file(self.region_path)
 
         return bt
+    
+    def get_num_regions(self):
+        '''
+        Return the number of regions.
+        '''
+        return self.get_region_bed_table().__len__()
+    
+    def load_region_anno_from_npy(self, anno_name, npy_path):
+        '''
+        Load annotation for each element in the region file. 
+        
+        Keyword arguments:
+        - anno_name: Name of the annotation.
+        - npy_path: Path to the numpy file.
+
+        Returns:
+        None
+        '''
+        anno_arr = np.load(npy_path)
+
+        anno_shape = anno_arr.shape
+
+        if anno_shape[0] != self.get_num_regions():
+            raise ValueError(f"Annotation shape {anno_shape} does not match the number of regions: {self.get_num_regions()}")
+        
+        if len(anno_shape) == 1:
+            self._anno_arr_dict[anno_name] = anno_arr
+            self._anno_length_dict[anno_name] = 1
+        
+        else:
+            self._anno_arr_dict[anno_name] = anno_arr
+            self._anno_length_dict[anno_name] = anno_shape[1]
+
+    def get_anno_dim(self, anno_name):
+        '''
+        Return the dimension of the annotation.
+
+        Keyword arguments:
+        - anno_name: Name of the annotation.
+
+        Return: 
+        - dim: Dimension of the annotation.
+        '''
+        return self._anno_length_dict[anno_name]
+
+    def get_anno_arr(self, anno_name):
+        '''
+        Return the annotation array.
+
+        Keyword arguments:
+        - anno_name: Name of the annotation.
+
+        Return:
+        - anno_arr: np.Array, Annotation array.
+        '''
+        return self._anno_arr_dict[anno_name]
