@@ -105,21 +105,37 @@ class TestBedTable(unittest.TestCase):
 class TestBedTable3(TestBedTable):
     def setUp(self) -> None:
         super().setUp()
+        self.data_df = self.__class__._gen_test_bed_file(self.data_file)
 
-        self.data_df = pd.DataFrame({
+    def tearDown(self) -> None:
+        super().tearDown()
+
+    @staticmethod
+    def _gen_test_bed_file(bed_path):
+        '''
+        Generate a test bed file.
+        Return the data in pd.DataFrame format
+
+        Keyword Arguments:
+        - bed_path: str, path to the bed file.
+
+        Return:
+        - data_df: pd.DataFrame for data contained in the generated bed.
+        '''
+        data_df = pd.DataFrame({
             "chrom": ["chr1", "chr1", "chr2", "chr2"],
             "start": [1, 8, 3, 4],
             "end": [5, 12, 7, 8],
         })
 
-        self.data_df.to_csv(self.data_file, 
-                              sep="\t", 
-                              header=False, 
-                              index=False, 
-                              )
-    
-    def tearDown(self) -> None:
-        super().tearDown()
+        data_df.to_csv(bed_path, 
+                       sep="\t", 
+                       header=False, 
+                       index=False, 
+                       )
+        
+        return data_df
+
     
     def test_load_from_file(self):
         bed_table = BedTable3()
@@ -320,7 +336,23 @@ class TestBedTable3(TestBedTable):
 class TestBedTable6(TestBedTable):
     def setUp(self) -> None:
         super().setUp()
-        self.data_df = pd.DataFrame({
+        self.data_df = self.__class__._gen_test_bed_file(self.data_file)
+
+    def tearDown(self) -> None:
+        super().tearDown()
+    
+    @staticmethod
+    def _gen_test_bed_file(bed_path):
+        '''
+        Generate bed file for testing.
+        
+        Keyword Arguments:
+        - bed_path: str, path to the bed file.
+        
+        Return: 
+        - data_df: pd.DataFrame for data contained in the generated bed.
+        '''
+        data_df = pd.DataFrame({
             "chrom": ["chr1", "chr1", "chr2", "chr2"],
             "start": [1, 8, 3, 4],
             "end": [5, 12, 7, 8],
@@ -329,14 +361,13 @@ class TestBedTable6(TestBedTable):
             "strand": ["+", "-", "+", "-"],
         })
 
-        self.data_df.to_csv(self.data_file, 
-                            sep="\t", 
-                            header=False, 
-                            index=False, 
-                            )
+        data_df.to_csv(bed_path, 
+                       sep="\t", 
+                       header=False, 
+                       index=False, 
+                       )
         
-    def tearDown(self) -> None:
-        super().tearDown()
+        return data_df
     
     def test_load_from_file(self):
         bed_table = BedTable6()
@@ -464,9 +495,47 @@ class TestBedTable6Plus(TestBedTable):
                             header=False, 
                             index=False, 
                             )
+        
+        self.data_df, self.extra_field_names, self.extra_field_dtype = \
+            self._gen_test_bed_file(self.data_file)
 
     def tearDown(self) -> None:
         return super().tearDown()
+
+    @staticmethod
+    def _gen_test_bed_file(bed_path):
+        '''
+        Generate bed file for testing.
+        
+        Keyword Arguments:
+        - bed_path: str, path to the bed file.
+        
+        Return:
+        - data_df: pd.DataFrame for data contained in the generated bed.
+        - extra_field_names: list of extra field names.
+        - extra_field_dtype: list of extra field data types.
+        '''
+        data_df = pd.DataFrame({
+            "chrom": ["chr1", "chr1", "chr2", "chr2"],
+            "start": [1, 8, 3, 4],
+            "end": [5, 12, 7, 8],
+            "name": ["name1", "name2", "name3", "name4"],
+            "score": [0.1, 0.2, 0.3, 0.4],
+            "strand": ["+", "-", "+", "-"],
+            "extra_str_field": ["extra1", "extra2", "extra3", "extra4"],
+            "extra_int_field": [1, 2, 3, 4],
+        })
+
+        extra_field_names = list(data_df.columns[6:])
+        extra_field_dtype = [str, int]
+
+        data_df.to_csv(bed_path, 
+                       sep="\t", 
+                       header=False, 
+                       index=False, 
+                       )
+
+        return data_df, extra_field_names, extra_field_dtype
 
     def test_get_region_extra_column(self):
         bed_table = self.__init_test_bed_table()
