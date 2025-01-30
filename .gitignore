@@ -161,3 +161,6 @@ cython_debug/
 
 # Mac-OS
 .DS_Store
+
+# Large testing files
+large_files/
