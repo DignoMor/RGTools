@@ -102,7 +102,19 @@ class GenomicElements:
         None
         '''
         anno_arr = np.load(npy_path)
+        self.load_region_anno_from_arr(anno_name, anno_arr)
 
+    def load_region_anno_from_arr(self, anno_name, anno_arr):
+        '''
+        Load annotation for each element in the region file. 
+        
+        Keyword arguments:
+        - anno_name: Name of the annotation.
+        - anno_arr: np.Array, Annotation array.
+
+        Returns:
+        None
+        '''
         anno_shape = anno_arr.shape
 
         if anno_shape[0] != self.get_num_regions():
@@ -139,3 +151,29 @@ class GenomicElements:
         - anno_arr: np.Array, Annotation array.
         '''
         return self._anno_arr_dict[anno_name]
+    
+    def apply_logical_filter(self, logical, new_region_path):
+        '''
+        Apply logical filter to the regions.
+
+        Keyword arguments:
+        - logical: np.Array, Logical array to filter the regions.
+        - region_path: Path to save the new region_file for filtered regions.
+
+        Returns:
+        - a new GenomicElements object with the filtered regions.
+        '''
+        result_ge = self.__class__(region_path=new_region_path,
+                                   region_file_type=self.region_file_type,
+                                   genome_path=self.genome_path,
+                                   )
+        
+        new_bt = self.get_region_bed_table().apply_logical_filter(logical)
+        new_bt.write(new_region_path)
+
+        for anno_name, anno_arr in self._anno_arr_dict.items():
+            new_anno_arr = anno_arr[logical]
+            result_ge.load_region_anno_from_arr(anno_name, new_anno_arr)
+
+        return result_ge
+    
