@@ -407,7 +407,7 @@ class BedTable3:
         '''
         Clone an empty instance.
         '''
-        new_bed_table = self.__class__()
+        new_bed_table = self.__class__(enable_sort=self.enable_sort)
         return new_bed_table
 
     def _sort(self) -> None:
@@ -596,7 +596,10 @@ class BedTable6Plus(BedTable6):
         return self._data_df[column_name].values
     
     def _clone_empty(self):
-        new_bed_table = self.__class__(self.extra_column_names, self.extra_column_dtype)
+        new_bed_table = self.__class__(self.extra_column_names, 
+                                       self.extra_column_dtype, 
+                                       enable_sort=self.enable_sort,
+                                       )
         return new_bed_table
 
 class BedTablePairEnd(BedTable3):
@@ -755,7 +758,9 @@ class BedTablePairEnd(BedTable3):
         return self._other_region_inverse_index.get_region_extra_column("index")[searched_ind]
 
     def _clone_empty(self):
-        new_bed_table = self.__class__(self.extra_column_names, self.extra_column_dtype)
+        new_bed_table = self.__class__(self.extra_column_names, 
+                                       self.extra_column_dtype, 
+                                       )
         return new_bed_table
 
     def _build_inverse_index_for_the_other_region(self):
