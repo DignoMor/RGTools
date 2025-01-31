@@ -63,6 +63,18 @@ class TestGenomicElements(unittest.TestCase):
         self.assertEqual(ge.get_anno_dim(anno_name), 1)
         self.assertTrue((ge.get_anno_arr(anno_name) == anno_arr).all())
     
+    def test_save_anno_npy(self):
+        ge = self._init_GenomicElements()
+        anno_name = "test_anno"
+        anno_arr = np.array([1,2,3,4])
+        ge.load_region_anno_from_arr(anno_name, anno_arr)
+
+        npy_path = os.path.join(self.__wdir, "test.npy")
+        ge.save_anno_npy(anno_name, npy_path)
+
+        self.assertTrue(os.path.exists(npy_path))
+        self.assertTrue((np.load(npy_path) == anno_arr).all())
+
     def test_apply_logical_filter(self):
         ge = self._init_GenomicElements()
         anno_name = "test_anno"

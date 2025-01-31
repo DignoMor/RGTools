@@ -152,6 +152,19 @@ class GenomicElements:
         '''
         return self._anno_arr_dict[anno_name]
     
+    def save_anno_npy(self, anno_name, npy_path):
+        '''
+        Save annotation to a numpy file.
+
+        Keyword arguments:
+        - anno_name: Name of the annotation.
+        - npy_path: Path to save the annotation.
+
+        Returns:
+        None
+        '''
+        np.save(npy_path, self.get_anno_arr(anno_name))
+    
     def apply_logical_filter(self, logical, new_region_path):
         '''
         Apply logical filter to the regions.
