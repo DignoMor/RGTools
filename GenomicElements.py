@@ -8,14 +8,14 @@ class GenomicElements:
     Class for Genomics elements.
     '''
 
-    def __init__(self, region_path, region_file_type, genome_path):
+    def __init__(self, region_path, region_file_type, fasta_path):
         '''
         Constructor for GenomicElements class.
 
         Keyword arguments:
         - region_path: Path to the region file.
         - region_file_type: Type of the region file (see GenomicElements.get_region_file_suffix2class_dict).
-        - genome_path: Path to the genome file.
+        - fasta_path: Path to the genome file.
         '''
         self.region_path = region_path
         self.region_file_type = region_file_type
@@ -24,7 +24,7 @@ class GenomicElements:
 
         self._anno_arr_dict = {}
         self._anno_length_dict = {}
-        self.genome_path = genome_path
+        self.fasta_path = fasta_path
 
     @staticmethod
     def get_region_file_suffix2class_dict():
@@ -50,7 +50,7 @@ class GenomicElements:
     
     @staticmethod
     def set_parser_genome(parser):
-        parser.add_argument("--genome_path", 
+        parser.add_argument("--fasta_path", 
                             help="Path to the genome file.",
                             required=True,
                             type=str, 
@@ -178,7 +178,7 @@ class GenomicElements:
         '''
         result_ge = self.__class__(region_path=new_region_path,
                                    region_file_type=self.region_file_type,
-                                   genome_path=self.genome_path,
+                                   fasta_path=self.fasta_path,
                                    )
         
         new_bt = self.get_region_bed_table().apply_logical_filter(logical)
