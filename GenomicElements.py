@@ -38,14 +38,15 @@ class GenomicElements:
         }
 
     @staticmethod
-    def BedTable6Gene():
+    def BedTable6Gene(enable_sort=True):
         '''
         Helper function to return a BedTable6Plus object
         that can load bed6gene annotations.
         '''
         bt = BedTable6Plus(extra_column_names=["gene_symbol"], 
-                        extra_column_dtype=[str], 
-                        )
+                           extra_column_dtype=[str], 
+                           enable_sort=enable_sort,
+                           )
         return bt
     
     @staticmethod
