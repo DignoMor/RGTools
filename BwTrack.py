@@ -46,6 +46,8 @@ class BwTrack:
             return np.sum(signal)
         elif output_type == "RPK":
             return np.sum(signal) / len(signal) * 1e3
+        elif output_type == "full_track":
+            return signal
         else:
             raise Exception("Unsupported output type ({}).".format(output_type))
     
@@ -54,7 +56,7 @@ class BwTrack:
         '''
         Return the list of supported quantification types.
         '''
-        return ["raw_count", "RPK"]
+        return ["raw_count", "RPK", "full_track"]
 
 
     def count_single_region(self, chrom, start, end, strand, 

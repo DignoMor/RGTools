@@ -25,3 +25,5 @@ class TestBwTrack(unittest.TestCase):
                          input_signal.sum() / len(input_signal) * 1e3,
                          )
 
+        self.assertTrue((BwTrack.quantify_signal(input_signal, "full_track") == input_signal).all())
+
