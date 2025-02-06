@@ -18,6 +18,16 @@ def str2bool(bool_str):
 
     return True
 
+def str2none(str_val):
+    '''
+    Convert string to None
+    '''
+
+    if str_val.upper() == "NONE":
+        return None
+
+    return str_val
+
 class NumpyEncoder(json.JSONEncoder):
     '''
     Helper class to encode data with numpy arrays for json serialization.
