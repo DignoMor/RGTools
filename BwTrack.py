@@ -73,7 +73,9 @@ class BwTrack:
         - chrom: chromosome
         - start: start position
         - end: end position
-        - strand: strandness, "+" or "-" or "."
+        - strand: strandness, "+" or "-" or ".". If ".", both strands are considered 
+                  and the sum of signals will be outputted. Strand can only be "." 
+                  if self.single_bw is True.
         - output_type: what information is outputted (see BwTrack.get_supported_quantification_type)
         - l_pad: left padding
         - r_pad: right padding
