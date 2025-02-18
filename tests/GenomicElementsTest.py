@@ -31,6 +31,10 @@ class TestGenomicElements(unittest.TestCase):
         genome_path = self.__hg38_genome_path
         return GenomicElements(region_path, region_file_type, genome_path)
 
+    def test_one_hot_encoding(self):
+        encoding = GenomicElements.one_hot_encoding("ACGT")
+        self.assertTrue((encoding == np.array([[1,0,0,0], [0,1,0,0], [0,0,1,0], [0,0,0,1]])).all())
+
     def test_get_num_regions(self):
         ge = self._init_GenomicElements()
         self.assertEqual(ge.get_num_regions(), 4)

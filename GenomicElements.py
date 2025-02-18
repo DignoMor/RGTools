@@ -77,6 +77,38 @@ class GenomicElements:
                             type=str, 
                             choices=GenomicElements.get_region_file_suffix2class_dict().keys(),
                             )
+    
+    @staticmethod
+    def one_hot_encoding(seq: str):
+        '''
+        Return the one hot encoding of a sequence.
+        Ambiguous nucleotides are encoded as zeros.
+        Adapted from PROcapNet code.
+
+        Keyword arguments:
+        - seq: Sequence to encode.
+
+        Output:
+        - encoding: numpy array of shape (len(seq), 4)
+        '''
+        ambiguous_nucs = ["Y", "R", "W", "S", "K", "M", "D", "V", "H", "B", "X", "N"]
+
+        sequence = seq.upper()
+        if isinstance(sequence, str):
+            sequence = list(sequence)
+
+        alphabet = ["A", "C", "G", "T"]
+        alphabet_lookup = {char: i for i, char in enumerate(alphabet)}
+
+        ohe = np.zeros((len(sequence), len(alphabet)), dtype="int8")
+        for i, char in enumerate(sequence):
+            if char in alphabet:
+                idx = alphabet_lookup[char]
+                ohe[i, idx] = 1
+            else:
+                assert char in ambiguous_nucs, char
+
+        return ohe
 
     def get_region_bed_table(self):
         '''
