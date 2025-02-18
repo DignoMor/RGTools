@@ -144,6 +144,31 @@ class GenomicElements:
                     return str(record.seq[start:end])  # Convert to 0-based index
         return None
     
+    def get_all_region_one_hot(self):
+        '''
+        Get the one hot encoding for all regions.
+
+        Returns:
+        - An numpy array of size (num_regions, region_length, 4)
+        '''
+        out_seqs = []
+
+        for i, region in enumerate(self.get_region_bed_table().iter_regions()):
+            seq = self.get_region_seq(region["chrom"], region["start"], region["end"])
+            out_seqs.append(seq)
+
+        out_seq_lens = np.array([len(s) for s in out_seqs])
+        seq_len = out_seq_lens[0]
+        if not (seq_len == out_seq_lens).all():
+            raise ValueError(f"Region sequences have different lengths: {out_seq_lens}")
+
+        out_arr = np.zeros((len(out_seqs), seq_len, 4), dtype="int8")
+
+        for i, seq in enumerate(out_seqs):
+            out_arr[i] = self.one_hot_encoding(seq)
+
+        return out_arr
+
     def load_region_anno_from_npy(self, anno_name, npy_path):
         '''
         Load annotation for each element in the region file. 

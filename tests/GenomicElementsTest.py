@@ -2,10 +2,12 @@
 import unittest
 import os
 
+import pandas as pd
 import numpy as np
 
 from .BedTableTest import TestBedTable3
 from ..GenomicElements import GenomicElements
+from ..BedTable import BedTable3
 
 class TestGenomicElements(unittest.TestCase):
     def setUp(self):
@@ -46,6 +48,25 @@ class TestGenomicElements(unittest.TestCase):
 
         nonexist_seq = ge.get_region_seq("chr24", 127048023, 127107288)
         self.assertIsNone(nonexist_seq)
+    
+    def test_get_all_region_one_hot(self):
+        region_path = os.path.join(self.__wdir, "one_hot_test.bed3")
+        region_file_type = "bed3"
+        region_bt = BedTable3()
+        region_bt.load_from_dataframe(pd.DataFrame({
+            "chrom": ["chr1", "chr1"],
+            "start": [123400, 124400],
+            "end": [123500, 124500], 
+        }))
+        region_bt.write(region_path)
+
+        ge = GenomicElements(region_path, 
+                             region_file_type, 
+                             self.__hg38_genome_path, 
+                             )
+
+        one_hot_arr = ge.get_all_region_one_hot()
+        self.assertEqual(one_hot_arr.shape, (2, 100, 4))
     
     def test_load_region_anno_from_npy(self):
         ge = self._init_GenomicElements()
