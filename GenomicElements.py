@@ -1,6 +1,8 @@
 
 import numpy as np
 
+from Bio import SeqIO
+
 from .BedTable import BedTable3, BedTable6, BedTable6Plus
 
 class GenomicElements:
@@ -90,6 +92,25 @@ class GenomicElements:
         Return the number of regions.
         '''
         return self.get_region_bed_table().__len__()
+    
+    def get_region_seq(self, chrom: str, start: int, end: int) -> str:
+        '''
+        Return the sequene of a given region. 
+        The coordinates are of bed convention.
+        
+        Keyword arguments:
+        - chrom: Chromosome name.
+        - start: Start coordinate.
+        - end: End coordinate.
+        
+        Returns:
+        - seq: Sequence of the region.
+        '''
+        with open(self.fasta_path, "r") as handle:
+            for record in SeqIO.parse(handle, "fasta"):
+                if record.id == chrom:
+                    return str(record.seq[start:end])  # Convert to 0-based index
+        return None
     
     def load_region_anno_from_npy(self, anno_name, npy_path):
         '''

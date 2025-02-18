@@ -15,7 +15,7 @@ class TestGenomicElements(unittest.TestCase):
         if not os.path.exists(self.__wdir):
             os.makedirs(self.__wdir)
 
-        self.__hg38_genome_path = "large_files/hg38.fa"
+        self.__hg38_genome_path = "RGTools/large_files/hg38.fa"
         self.__bed3_region_path = os.path.join(self.__wdir, "test.bed3")
 
         TestBedTable3._gen_test_bed_file(self.__bed3_region_path)
@@ -34,6 +34,14 @@ class TestGenomicElements(unittest.TestCase):
     def test_get_num_regions(self):
         ge = self._init_GenomicElements()
         self.assertEqual(ge.get_num_regions(), 4)
+
+    def test_get_region_seq(self):
+        ge = self._init_GenomicElements()
+        bin1_seq = ge.get_region_seq("chr2", 127048023, 127107288)
+        self.assertEqual(bin1_seq[:10], "ACGTTTTCTG")
+
+        nonexist_seq = ge.get_region_seq("chr24", 127048023, 127107288)
+        self.assertIsNone(nonexist_seq)
     
     def test_load_region_anno_from_npy(self):
         ge = self._init_GenomicElements()
