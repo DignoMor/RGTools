@@ -147,14 +147,24 @@ class GenomicElements:
     def get_all_region_one_hot(self):
         '''
         Get the one hot encoding for all regions.
+        This function reads the genome file to memory 
+        so that it is memory intensive.
 
         Returns:
         - An numpy array of size (num_regions, region_length, 4)
         '''
+        # get chrom name to seq dict
+        chrom_seq_dict = {}
+        with open(self.fasta_path, "r") as handle:
+            for record in SeqIO.parse(handle, "fasta"):
+                chrom_seq_dict[record.id] = str(record.seq)
+
         out_seqs = []
 
         for i, region in enumerate(self.get_region_bed_table().iter_regions()):
-            seq = self.get_region_seq(region["chrom"], region["start"], region["end"])
+            if not region["chrom"] in chrom_seq_dict:
+                raise ValueError(f"Chromosome {region['chrom']} not found in the genome file.")
+            seq = chrom_seq_dict[region["chrom"]][region["start"]:region["end"]]
             out_seqs.append(seq)
 
         out_seq_lens = np.array([len(s) for s in out_seqs])
