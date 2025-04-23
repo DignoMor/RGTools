@@ -1,5 +1,6 @@
 
 import unittest
+import shutil
 import os
 
 import pandas as pd
@@ -25,6 +26,8 @@ class TestGenomicElements(unittest.TestCase):
         return super().setUp()
     
     def tearDown(self):
+        if os.path.exists(self.__wdir):
+            shutil.rmtree(self.__wdir)
         return super().tearDown()
 
     def _init_GenomicElements(self):
