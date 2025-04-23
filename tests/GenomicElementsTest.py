@@ -49,6 +49,26 @@ class TestGenomicElements(unittest.TestCase):
         nonexist_seq = ge.get_region_seq("chr24", 127048023, 127107288)
         self.assertIsNone(nonexist_seq)
     
+    def test_get_all_region_seqs(self):
+        region_path = os.path.join(self.__wdir, "get_region_seq_test.bed3")
+        region_file_type = "bed3"
+        region_bt = BedTable3()
+        region_bt.load_from_dataframe(pd.DataFrame({
+            "chrom": ["chr1", "chr1"],
+            "start": [123400, 124400],
+            "end": [123500, 124500], 
+        }))
+        region_bt.write(region_path)
+
+        ge = GenomicElements(region_path, 
+                             region_file_type, 
+                             self.__hg38_genome_path, 
+                             )
+
+        region_seq_list = ge.get_all_region_seqs()
+        self.assertEqual(len(region_seq_list), 2)
+        self.assertEqual(region_seq_list[0][:12], "GTGTAATTACAA")
+
     def test_get_all_region_one_hot(self):
         region_path = os.path.join(self.__wdir, "one_hot_test.bed3")
         region_file_type = "bed3"

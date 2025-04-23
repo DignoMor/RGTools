@@ -144,14 +144,13 @@ class GenomicElements:
                     return str(record.seq[start:end])  # Convert to 0-based index
         return None
     
-    def get_all_region_one_hot(self):
+    def get_all_region_seqs(self):
         '''
-        Get the one hot encoding for all regions.
-        This function reads the genome file to memory 
-        so that it is memory intensive.
-
+        Get the sequences for all regions.
+        This function reads the genome file to memory.
+        
         Returns:
-        - An numpy array of size (num_regions, region_length, 4)
+        - A list of strings of length region_length
         '''
         # get chrom name to seq dict
         chrom_seq_dict = {}
@@ -171,6 +170,20 @@ class GenomicElements:
         seq_len = out_seq_lens[0]
         if not (seq_len == out_seq_lens).all():
             raise ValueError(f"Region sequences have different lengths: {out_seq_lens}")
+        
+        return out_seqs
+    
+    def get_all_region_one_hot(self):
+        '''
+        Get the one hot encoding for all regions.
+        This function reads the genome file to memory 
+        so that it is memory intensive.
+
+        Returns:
+        - An numpy array of size (num_regions, region_length, 4)
+        '''
+        out_seqs = self.get_all_region_seqs()
+        seq_len = len(out_seqs[0])
 
         out_arr = np.zeros((len(out_seqs), seq_len, 4), dtype="int8")
 
