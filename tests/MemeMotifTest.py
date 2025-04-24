@@ -15,8 +15,6 @@ class TestMemeMotif(unittest.TestCase):
 
         self._meme_file_path = os.path.join(self._test_dir, "test_motifs.meme")
         # Download meme example from meme website
-        import requests
-
         url = "https://meme-suite.org/meme/doc/examples/sample-dna-motif.meme"
         response = requests.get(url)
 
