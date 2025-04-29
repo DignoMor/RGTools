@@ -39,6 +39,12 @@
                                 <a class="function" href="#Logger.__init__">Logger</a>
                         </li>
                         <li>
+                                <a class="function" href="#Logger.indent">indent</a>
+                        </li>
+                        <li>
+                                <a class="function" href="#Logger.unindent">unindent</a>
+                        </li>
+                        <li>
                                 <a class="function" href="#Logger.take_log">take_log</a>
                         </li>
                 </ul>
@@ -68,22 +74,52 @@ RGTools<wbr>.logging    </h1>
                         <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos"> 1</span></a><span class="kn">import</span> <span class="nn">sys</span>
 </span><span id="L-2"><a href="#L-2"><span class="linenos"> 2</span></a>
 </span><span id="L-3"><a href="#L-3"><span class="linenos"> 3</span></a><span class="k">class</span> <span class="nc">Logger</span><span class="p">:</span>
-</span><span id="L-4"><a href="#L-4"><span class="linenos"> 4</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">opath</span><span class="o">=</span><span class="s2">&quot;stderr&quot;</span><span class="p">):</span>
-</span><span id="L-5"><a href="#L-5"><span class="linenos"> 5</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_opath</span> <span class="o">=</span> <span class="n">opath</span>
-</span><span id="L-6"><a href="#L-6"><span class="linenos"> 6</span></a>    
-</span><span id="L-7"><a href="#L-7"><span class="linenos"> 7</span></a>    <span class="k">def</span> <span class="nf">take_log</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
-</span><span id="L-8"><a href="#L-8"><span class="linenos"> 8</span></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_opath</span> <span class="o">==</span> <span class="s2">&quot;stderr&quot;</span><span class="p">:</span>
-</span><span id="L-9"><a href="#L-9"><span class="linenos"> 9</span></a>            <span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
-</span><span id="L-10"><a href="#L-10"><span class="linenos">10</span></a>            <span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
-</span><span id="L-11"><a href="#L-11"><span class="linenos">11</span></a>
-</span><span id="L-12"><a href="#L-12"><span class="linenos">12</span></a>        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_opath</span> <span class="o">==</span> <span class="s2">&quot;stdout&quot;</span><span class="p">:</span>
-</span><span id="L-13"><a href="#L-13"><span class="linenos">13</span></a>            <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
-</span><span id="L-14"><a href="#L-14"><span class="linenos">14</span></a>            <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
-</span><span id="L-15"><a href="#L-15"><span class="linenos">15</span></a>
-</span><span id="L-16"><a href="#L-16"><span class="linenos">16</span></a>        <span class="k">else</span><span class="p">:</span>
-</span><span id="L-17"><a href="#L-17"><span class="linenos">17</span></a>            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_opath</span><span class="p">,</span> <span class="s2">&quot;a&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-</span><span id="L-18"><a href="#L-18"><span class="linenos">18</span></a>                <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
-</span><span id="L-19"><a href="#L-19"><span class="linenos">19</span></a>                <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+</span><span id="L-4"><a href="#L-4"><span class="linenos"> 4</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">opath</span><span class="o">=</span><span class="s2">&quot;stderr&quot;</span><span class="p">,</span> 
+</span><span id="L-5"><a href="#L-5"><span class="linenos"> 5</span></a>                 <span class="n">indent_level</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">indentation</span><span class="o">=</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">,</span> 
+</span><span id="L-6"><a href="#L-6"><span class="linenos"> 6</span></a>                 <span class="p">):</span>
+</span><span id="L-7"><a href="#L-7"><span class="linenos"> 7</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_opath</span> <span class="o">=</span> <span class="n">opath</span>
+</span><span id="L-8"><a href="#L-8"><span class="linenos"> 8</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_indent_level</span> <span class="o">=</span> <span class="n">indent_level</span>
+</span><span id="L-9"><a href="#L-9"><span class="linenos"> 9</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_indentation</span> <span class="o">=</span> <span class="n">indentation</span>
+</span><span id="L-10"><a href="#L-10"><span class="linenos">10</span></a>    
+</span><span id="L-11"><a href="#L-11"><span class="linenos">11</span></a>    <span class="k">def</span> <span class="nf">indent</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-12"><a href="#L-12"><span class="linenos">12</span></a><span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+</span><span id="L-13"><a href="#L-13"><span class="linenos">13</span></a><span class="sd">        Increase the indent level.</span>
+</span><span id="L-14"><a href="#L-14"><span class="linenos">14</span></a><span class="sd">        &#39;&#39;&#39;</span>
+</span><span id="L-15"><a href="#L-15"><span class="linenos">15</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_indent_level</span> <span class="o">+=</span> <span class="mi">1</span>
+</span><span id="L-16"><a href="#L-16"><span class="linenos">16</span></a>
+</span><span id="L-17"><a href="#L-17"><span class="linenos">17</span></a>    <span class="k">def</span> <span class="nf">unindent</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-18"><a href="#L-18"><span class="linenos">18</span></a><span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+</span><span id="L-19"><a href="#L-19"><span class="linenos">19</span></a><span class="sd">        Decrease the indent level.</span>
+</span><span id="L-20"><a href="#L-20"><span class="linenos">20</span></a><span class="sd">        &#39;&#39;&#39;</span>
+</span><span id="L-21"><a href="#L-21"><span class="linenos">21</span></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_indent_level</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+</span><span id="L-22"><a href="#L-22"><span class="linenos">22</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">_indent_level</span> <span class="o">-=</span> <span class="mi">1</span>
+</span><span id="L-23"><a href="#L-23"><span class="linenos">23</span></a>        <span class="k">else</span><span class="p">:</span>
+</span><span id="L-24"><a href="#L-24"><span class="linenos">24</span></a>            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Indent level cannot be negative.&quot;</span><span class="p">)</span>
+</span><span id="L-25"><a href="#L-25"><span class="linenos">25</span></a>
+</span><span id="L-26"><a href="#L-26"><span class="linenos">26</span></a>    <span class="k">def</span> <span class="nf">take_log</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
+</span><span id="L-27"><a href="#L-27"><span class="linenos">27</span></a><span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+</span><span id="L-28"><a href="#L-28"><span class="linenos">28</span></a><span class="sd">        Take log according to the indent level set.</span>
+</span><span id="L-29"><a href="#L-29"><span class="linenos">29</span></a><span class="sd">        &#39;&#39;&#39;</span>
+</span><span id="L-30"><a href="#L-30"><span class="linenos">30</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_write</span><span class="p">(</span>
+</span><span id="L-31"><a href="#L-31"><span class="linenos">31</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">_indentation</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_indent_level</span> <span class="o">+</span> <span class="n">message</span>
+</span><span id="L-32"><a href="#L-32"><span class="linenos">32</span></a>        <span class="p">)</span>
+</span><span id="L-33"><a href="#L-33"><span class="linenos">33</span></a>
+</span><span id="L-34"><a href="#L-34"><span class="linenos">34</span></a>    <span class="k">def</span> <span class="nf">_write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
+</span><span id="L-35"><a href="#L-35"><span class="linenos">35</span></a><span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+</span><span id="L-36"><a href="#L-36"><span class="linenos">36</span></a><span class="sd">        Write message to the logging stream. </span>
+</span><span id="L-37"><a href="#L-37"><span class="linenos">37</span></a><span class="sd">        &#39;&#39;&#39;</span>
+</span><span id="L-38"><a href="#L-38"><span class="linenos">38</span></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_opath</span> <span class="o">==</span> <span class="s2">&quot;stderr&quot;</span><span class="p">:</span>
+</span><span id="L-39"><a href="#L-39"><span class="linenos">39</span></a>            <span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+</span><span id="L-40"><a href="#L-40"><span class="linenos">40</span></a>            <span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+</span><span id="L-41"><a href="#L-41"><span class="linenos">41</span></a>
+</span><span id="L-42"><a href="#L-42"><span class="linenos">42</span></a>        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_opath</span> <span class="o">==</span> <span class="s2">&quot;stdout&quot;</span><span class="p">:</span>
+</span><span id="L-43"><a href="#L-43"><span class="linenos">43</span></a>            <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+</span><span id="L-44"><a href="#L-44"><span class="linenos">44</span></a>            <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+</span><span id="L-45"><a href="#L-45"><span class="linenos">45</span></a>
+</span><span id="L-46"><a href="#L-46"><span class="linenos">46</span></a>        <span class="k">else</span><span class="p">:</span>
+</span><span id="L-47"><a href="#L-47"><span class="linenos">47</span></a>            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_opath</span><span class="p">,</span> <span class="s2">&quot;a&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+</span><span id="L-48"><a href="#L-48"><span class="linenos">48</span></a>                <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+</span><span id="L-49"><a href="#L-49"><span class="linenos">49</span></a>                <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
 </span></pre></div>
 
 
@@ -100,22 +136,52 @@ RGTools<wbr>.logging    </h1>
     </div>
     <a class="headerlink" href="#Logger"></a>
             <div class="pdoc-code codehilite"><pre><span></span><span id="Logger-5"><a href="#Logger-5"><span class="linenos"> 5</span></a><span class="k">class</span> <span class="nc">Logger</span><span class="p">:</span>
-</span><span id="Logger-6"><a href="#Logger-6"><span class="linenos"> 6</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">opath</span><span class="o">=</span><span class="s2">&quot;stderr&quot;</span><span class="p">):</span>
-</span><span id="Logger-7"><a href="#Logger-7"><span class="linenos"> 7</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_opath</span> <span class="o">=</span> <span class="n">opath</span>
-</span><span id="Logger-8"><a href="#Logger-8"><span class="linenos"> 8</span></a>    
-</span><span id="Logger-9"><a href="#Logger-9"><span class="linenos"> 9</span></a>    <span class="k">def</span> <span class="nf">take_log</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
-</span><span id="Logger-10"><a href="#Logger-10"><span class="linenos">10</span></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_opath</span> <span class="o">==</span> <span class="s2">&quot;stderr&quot;</span><span class="p">:</span>
-</span><span id="Logger-11"><a href="#Logger-11"><span class="linenos">11</span></a>            <span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
-</span><span id="Logger-12"><a href="#Logger-12"><span class="linenos">12</span></a>            <span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
-</span><span id="Logger-13"><a href="#Logger-13"><span class="linenos">13</span></a>
-</span><span id="Logger-14"><a href="#Logger-14"><span class="linenos">14</span></a>        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_opath</span> <span class="o">==</span> <span class="s2">&quot;stdout&quot;</span><span class="p">:</span>
-</span><span id="Logger-15"><a href="#Logger-15"><span class="linenos">15</span></a>            <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
-</span><span id="Logger-16"><a href="#Logger-16"><span class="linenos">16</span></a>            <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
-</span><span id="Logger-17"><a href="#Logger-17"><span class="linenos">17</span></a>
-</span><span id="Logger-18"><a href="#Logger-18"><span class="linenos">18</span></a>        <span class="k">else</span><span class="p">:</span>
-</span><span id="Logger-19"><a href="#Logger-19"><span class="linenos">19</span></a>            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_opath</span><span class="p">,</span> <span class="s2">&quot;a&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-</span><span id="Logger-20"><a href="#Logger-20"><span class="linenos">20</span></a>                <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
-</span><span id="Logger-21"><a href="#Logger-21"><span class="linenos">21</span></a>                <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+</span><span id="Logger-6"><a href="#Logger-6"><span class="linenos"> 6</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">opath</span><span class="o">=</span><span class="s2">&quot;stderr&quot;</span><span class="p">,</span> 
+</span><span id="Logger-7"><a href="#Logger-7"><span class="linenos"> 7</span></a>                 <span class="n">indent_level</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">indentation</span><span class="o">=</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">,</span> 
+</span><span id="Logger-8"><a href="#Logger-8"><span class="linenos"> 8</span></a>                 <span class="p">):</span>
+</span><span id="Logger-9"><a href="#Logger-9"><span class="linenos"> 9</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_opath</span> <span class="o">=</span> <span class="n">opath</span>
+</span><span id="Logger-10"><a href="#Logger-10"><span class="linenos">10</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_indent_level</span> <span class="o">=</span> <span class="n">indent_level</span>
+</span><span id="Logger-11"><a href="#Logger-11"><span class="linenos">11</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_indentation</span> <span class="o">=</span> <span class="n">indentation</span>
+</span><span id="Logger-12"><a href="#Logger-12"><span class="linenos">12</span></a>    
+</span><span id="Logger-13"><a href="#Logger-13"><span class="linenos">13</span></a>    <span class="k">def</span> <span class="nf">indent</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="Logger-14"><a href="#Logger-14"><span class="linenos">14</span></a><span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+</span><span id="Logger-15"><a href="#Logger-15"><span class="linenos">15</span></a><span class="sd">        Increase the indent level.</span>
+</span><span id="Logger-16"><a href="#Logger-16"><span class="linenos">16</span></a><span class="sd">        &#39;&#39;&#39;</span>
+</span><span id="Logger-17"><a href="#Logger-17"><span class="linenos">17</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_indent_level</span> <span class="o">+=</span> <span class="mi">1</span>
+</span><span id="Logger-18"><a href="#Logger-18"><span class="linenos">18</span></a>
+</span><span id="Logger-19"><a href="#Logger-19"><span class="linenos">19</span></a>    <span class="k">def</span> <span class="nf">unindent</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="Logger-20"><a href="#Logger-20"><span class="linenos">20</span></a><span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+</span><span id="Logger-21"><a href="#Logger-21"><span class="linenos">21</span></a><span class="sd">        Decrease the indent level.</span>
+</span><span id="Logger-22"><a href="#Logger-22"><span class="linenos">22</span></a><span class="sd">        &#39;&#39;&#39;</span>
+</span><span id="Logger-23"><a href="#Logger-23"><span class="linenos">23</span></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_indent_level</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+</span><span id="Logger-24"><a href="#Logger-24"><span class="linenos">24</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">_indent_level</span> <span class="o">-=</span> <span class="mi">1</span>
+</span><span id="Logger-25"><a href="#Logger-25"><span class="linenos">25</span></a>        <span class="k">else</span><span class="p">:</span>
+</span><span id="Logger-26"><a href="#Logger-26"><span class="linenos">26</span></a>            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Indent level cannot be negative.&quot;</span><span class="p">)</span>
+</span><span id="Logger-27"><a href="#Logger-27"><span class="linenos">27</span></a>
+</span><span id="Logger-28"><a href="#Logger-28"><span class="linenos">28</span></a>    <span class="k">def</span> <span class="nf">take_log</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
+</span><span id="Logger-29"><a href="#Logger-29"><span class="linenos">29</span></a><span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+</span><span id="Logger-30"><a href="#Logger-30"><span class="linenos">30</span></a><span class="sd">        Take log according to the indent level set.</span>
+</span><span id="Logger-31"><a href="#Logger-31"><span class="linenos">31</span></a><span class="sd">        &#39;&#39;&#39;</span>
+</span><span id="Logger-32"><a href="#Logger-32"><span class="linenos">32</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_write</span><span class="p">(</span>
+</span><span id="Logger-33"><a href="#Logger-33"><span class="linenos">33</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">_indentation</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_indent_level</span> <span class="o">+</span> <span class="n">message</span>
+</span><span id="Logger-34"><a href="#Logger-34"><span class="linenos">34</span></a>        <span class="p">)</span>
+</span><span id="Logger-35"><a href="#Logger-35"><span class="linenos">35</span></a>
+</span><span id="Logger-36"><a href="#Logger-36"><span class="linenos">36</span></a>    <span class="k">def</span> <span class="nf">_write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
+</span><span id="Logger-37"><a href="#Logger-37"><span class="linenos">37</span></a><span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+</span><span id="Logger-38"><a href="#Logger-38"><span class="linenos">38</span></a><span class="sd">        Write message to the logging stream. </span>
+</span><span id="Logger-39"><a href="#Logger-39"><span class="linenos">39</span></a><span class="sd">        &#39;&#39;&#39;</span>
+</span><span id="Logger-40"><a href="#Logger-40"><span class="linenos">40</span></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_opath</span> <span class="o">==</span> <span class="s2">&quot;stderr&quot;</span><span class="p">:</span>
+</span><span id="Logger-41"><a href="#Logger-41"><span class="linenos">41</span></a>            <span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+</span><span id="Logger-42"><a href="#Logger-42"><span class="linenos">42</span></a>            <span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+</span><span id="Logger-43"><a href="#Logger-43"><span class="linenos">43</span></a>
+</span><span id="Logger-44"><a href="#Logger-44"><span class="linenos">44</span></a>        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_opath</span> <span class="o">==</span> <span class="s2">&quot;stdout&quot;</span><span class="p">:</span>
+</span><span id="Logger-45"><a href="#Logger-45"><span class="linenos">45</span></a>            <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+</span><span id="Logger-46"><a href="#Logger-46"><span class="linenos">46</span></a>            <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+</span><span id="Logger-47"><a href="#Logger-47"><span class="linenos">47</span></a>
+</span><span id="Logger-48"><a href="#Logger-48"><span class="linenos">48</span></a>        <span class="k">else</span><span class="p">:</span>
+</span><span id="Logger-49"><a href="#Logger-49"><span class="linenos">49</span></a>            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_opath</span><span class="p">,</span> <span class="s2">&quot;a&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+</span><span id="Logger-50"><a href="#Logger-50"><span class="linenos">50</span></a>                <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+</span><span id="Logger-51"><a href="#Logger-51"><span class="linenos">51</span></a>                <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
 </span></pre></div>
 
 
@@ -125,18 +191,73 @@ RGTools<wbr>.logging    </h1>
                                         <input id="Logger.__init__-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
 <div class="attr function">
             
-        <span class="name">Logger</span><span class="signature pdoc-code condensed">(<span class="param"><span class="n">opath</span><span class="o">=</span><span class="s1">&#39;stderr&#39;</span></span>)</span>
+        <span class="name">Logger</span><span class="signature pdoc-code condensed">(<span class="param"><span class="n">opath</span><span class="o">=</span><span class="s1">&#39;stderr&#39;</span>, </span><span class="param"><span class="n">indent_level</span><span class="o">=</span><span class="mi">0</span>, </span><span class="param"><span class="n">indentation</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span></span>)</span>
 
                 <label class="view-source-button" for="Logger.__init__-view-source"><span>View Source</span></label>
 
     </div>
     <a class="headerlink" href="#Logger.__init__"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="Logger.__init__-6"><a href="#Logger.__init__-6"><span class="linenos">6</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">opath</span><span class="o">=</span><span class="s2">&quot;stderr&quot;</span><span class="p">):</span>
-</span><span id="Logger.__init__-7"><a href="#Logger.__init__-7"><span class="linenos">7</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_opath</span> <span class="o">=</span> <span class="n">opath</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Logger.__init__-6"><a href="#Logger.__init__-6"><span class="linenos"> 6</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">opath</span><span class="o">=</span><span class="s2">&quot;stderr&quot;</span><span class="p">,</span> 
+</span><span id="Logger.__init__-7"><a href="#Logger.__init__-7"><span class="linenos"> 7</span></a>                 <span class="n">indent_level</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">indentation</span><span class="o">=</span><span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">,</span> 
+</span><span id="Logger.__init__-8"><a href="#Logger.__init__-8"><span class="linenos"> 8</span></a>                 <span class="p">):</span>
+</span><span id="Logger.__init__-9"><a href="#Logger.__init__-9"><span class="linenos"> 9</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_opath</span> <span class="o">=</span> <span class="n">opath</span>
+</span><span id="Logger.__init__-10"><a href="#Logger.__init__-10"><span class="linenos">10</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_indent_level</span> <span class="o">=</span> <span class="n">indent_level</span>
+</span><span id="Logger.__init__-11"><a href="#Logger.__init__-11"><span class="linenos">11</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_indentation</span> <span class="o">=</span> <span class="n">indentation</span>
 </span></pre></div>
 
 
     
+
+                            </div>
+                            <div id="Logger.indent" class="classattr">
+                                        <input id="Logger.indent-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+<div class="attr function">
+            
+        <span class="def">def</span>
+        <span class="name">indent</span><span class="signature pdoc-code condensed">(<span class="param"><span class="bp">self</span></span><span class="return-annotation">):</span></span>
+
+                <label class="view-source-button" for="Logger.indent-view-source"><span>View Source</span></label>
+
+    </div>
+    <a class="headerlink" href="#Logger.indent"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Logger.indent-13"><a href="#Logger.indent-13"><span class="linenos">13</span></a>    <span class="k">def</span> <span class="nf">indent</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="Logger.indent-14"><a href="#Logger.indent-14"><span class="linenos">14</span></a><span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+</span><span id="Logger.indent-15"><a href="#Logger.indent-15"><span class="linenos">15</span></a><span class="sd">        Increase the indent level.</span>
+</span><span id="Logger.indent-16"><a href="#Logger.indent-16"><span class="linenos">16</span></a><span class="sd">        &#39;&#39;&#39;</span>
+</span><span id="Logger.indent-17"><a href="#Logger.indent-17"><span class="linenos">17</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_indent_level</span> <span class="o">+=</span> <span class="mi">1</span>
+</span></pre></div>
+
+
+            <div class="docstring"><p>Increase the indent level.</p>
+</div>
+
+
+                            </div>
+                            <div id="Logger.unindent" class="classattr">
+                                        <input id="Logger.unindent-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+<div class="attr function">
+            
+        <span class="def">def</span>
+        <span class="name">unindent</span><span class="signature pdoc-code condensed">(<span class="param"><span class="bp">self</span></span><span class="return-annotation">):</span></span>
+
+                <label class="view-source-button" for="Logger.unindent-view-source"><span>View Source</span></label>
+
+    </div>
+    <a class="headerlink" href="#Logger.unindent"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Logger.unindent-19"><a href="#Logger.unindent-19"><span class="linenos">19</span></a>    <span class="k">def</span> <span class="nf">unindent</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="Logger.unindent-20"><a href="#Logger.unindent-20"><span class="linenos">20</span></a><span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+</span><span id="Logger.unindent-21"><a href="#Logger.unindent-21"><span class="linenos">21</span></a><span class="sd">        Decrease the indent level.</span>
+</span><span id="Logger.unindent-22"><a href="#Logger.unindent-22"><span class="linenos">22</span></a><span class="sd">        &#39;&#39;&#39;</span>
+</span><span id="Logger.unindent-23"><a href="#Logger.unindent-23"><span class="linenos">23</span></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_indent_level</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+</span><span id="Logger.unindent-24"><a href="#Logger.unindent-24"><span class="linenos">24</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">_indent_level</span> <span class="o">-=</span> <span class="mi">1</span>
+</span><span id="Logger.unindent-25"><a href="#Logger.unindent-25"><span class="linenos">25</span></a>        <span class="k">else</span><span class="p">:</span>
+</span><span id="Logger.unindent-26"><a href="#Logger.unindent-26"><span class="linenos">26</span></a>            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Indent level cannot be negative.&quot;</span><span class="p">)</span>
+</span></pre></div>
+
+
+            <div class="docstring"><p>Decrease the indent level.</p>
+</div>
+
 
                             </div>
                             <div id="Logger.take_log" class="classattr">
@@ -150,23 +271,19 @@ RGTools<wbr>.logging    </h1>
 
     </div>
     <a class="headerlink" href="#Logger.take_log"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="Logger.take_log-9"><a href="#Logger.take_log-9"><span class="linenos"> 9</span></a>    <span class="k">def</span> <span class="nf">take_log</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
-</span><span id="Logger.take_log-10"><a href="#Logger.take_log-10"><span class="linenos">10</span></a>        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_opath</span> <span class="o">==</span> <span class="s2">&quot;stderr&quot;</span><span class="p">:</span>
-</span><span id="Logger.take_log-11"><a href="#Logger.take_log-11"><span class="linenos">11</span></a>            <span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
-</span><span id="Logger.take_log-12"><a href="#Logger.take_log-12"><span class="linenos">12</span></a>            <span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
-</span><span id="Logger.take_log-13"><a href="#Logger.take_log-13"><span class="linenos">13</span></a>
-</span><span id="Logger.take_log-14"><a href="#Logger.take_log-14"><span class="linenos">14</span></a>        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_opath</span> <span class="o">==</span> <span class="s2">&quot;stdout&quot;</span><span class="p">:</span>
-</span><span id="Logger.take_log-15"><a href="#Logger.take_log-15"><span class="linenos">15</span></a>            <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
-</span><span id="Logger.take_log-16"><a href="#Logger.take_log-16"><span class="linenos">16</span></a>            <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
-</span><span id="Logger.take_log-17"><a href="#Logger.take_log-17"><span class="linenos">17</span></a>
-</span><span id="Logger.take_log-18"><a href="#Logger.take_log-18"><span class="linenos">18</span></a>        <span class="k">else</span><span class="p">:</span>
-</span><span id="Logger.take_log-19"><a href="#Logger.take_log-19"><span class="linenos">19</span></a>            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_opath</span><span class="p">,</span> <span class="s2">&quot;a&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-</span><span id="Logger.take_log-20"><a href="#Logger.take_log-20"><span class="linenos">20</span></a>                <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
-</span><span id="Logger.take_log-21"><a href="#Logger.take_log-21"><span class="linenos">21</span></a>                <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Logger.take_log-28"><a href="#Logger.take_log-28"><span class="linenos">28</span></a>    <span class="k">def</span> <span class="nf">take_log</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
+</span><span id="Logger.take_log-29"><a href="#Logger.take_log-29"><span class="linenos">29</span></a><span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
+</span><span id="Logger.take_log-30"><a href="#Logger.take_log-30"><span class="linenos">30</span></a><span class="sd">        Take log according to the indent level set.</span>
+</span><span id="Logger.take_log-31"><a href="#Logger.take_log-31"><span class="linenos">31</span></a><span class="sd">        &#39;&#39;&#39;</span>
+</span><span id="Logger.take_log-32"><a href="#Logger.take_log-32"><span class="linenos">32</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_write</span><span class="p">(</span>
+</span><span id="Logger.take_log-33"><a href="#Logger.take_log-33"><span class="linenos">33</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">_indentation</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_indent_level</span> <span class="o">+</span> <span class="n">message</span>
+</span><span id="Logger.take_log-34"><a href="#Logger.take_log-34"><span class="linenos">34</span></a>        <span class="p">)</span>
 </span></pre></div>
 
 
-    
+            <div class="docstring"><p>Take log according to the indent level set.</p>
+</div>
+
 
                             </div>
                 </section>
