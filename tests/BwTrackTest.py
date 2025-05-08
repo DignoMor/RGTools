@@ -1,29 +1,107 @@
-
 import unittest
 import shutil
 import os
 
 import numpy as np
 
-from ..BwTrack import BwTrack
+from ..BwTrack import BaseBwTrack, SingleBwTrack, PairedBwTrack
 
-class TestBwTrack(unittest.TestCase):
-    def setUp(self):
-        return super().setUp()
-    
-    def tearDown(self):
-        return super().tearDown()
-    
+class TestBaseBwTrack(unittest.TestCase):
     def test_quantify_signal(self):
-        input_signal = np.array([1,2,3,4,5])
+        input_signal = np.array([1, 2, 3, 4, 5])
 
-        self.assertEqual(BwTrack.quantify_signal(input_signal, "raw_count"), 
-                         input_signal.sum(), 
-                         )
+        self.assertEqual(BaseBwTrack.quantify_signal(input_signal, "raw_count"), 
+                        input_signal.sum())
         
-        self.assertEqual(BwTrack.quantify_signal(input_signal, "RPK"),
-                         input_signal.sum() / len(input_signal) * 1e3,
-                         )
+        self.assertEqual(BaseBwTrack.quantify_signal(input_signal, "RPK"),
+                        input_signal.sum() / len(input_signal) * 1e3)
 
-        self.assertTrue((BwTrack.quantify_signal(input_signal, "full_track") == input_signal).all())
+        self.assertTrue((BaseBwTrack.quantify_signal(input_signal, "full_track") == input_signal).all())
+
+    def test_process_padding(self):
+        # Test normal padding
+        start, end = BaseBwTrack._process_padding("chr1", 100, 200, 10, 20, 50, "raise")
+        self.assertEqual(start, 90)
+        self.assertEqual(end, 220)
+
+        # Test fallback
+        start, end = BaseBwTrack._process_padding("chr1", 100, 200, -100, -100, 50, "fallback")
+        self.assertEqual(start, 100)
+        self.assertEqual(end, 200)
+
+        # Test drop
+        start, end = BaseBwTrack._process_padding("chr1", 100, 200, -100, -100, 50, "drop")
+        self.assertIsNone(start)
+        self.assertIsNone(end)
+
+        # Test raise
+        with self.assertRaises(Exception):
+            BaseBwTrack._process_padding("chr1", 100, 200, -100, -100, 50, "raise")
+
+class TestSingleBwTrack(unittest.TestCase):
+    def setUp(self):
+        self._bw_path = "RGTools/large_files/ENCFF565BWR.pl.bw"
+
+        super().setUp()
+
+    def tearDown(self):
+        super().tearDown()
+
+    def test_count_single_region(self):
+        bw_track = SingleBwTrack(self._bw_path)
+
+        count = bw_track.count_single_region("chr1", 
+                                             1000698, 
+                                             1000953, 
+                                             output_type="raw_count", 
+                                             l_pad=0, 
+                                             r_pad=0, 
+                                             min_len_after_padding=50, 
+                                             method_resolving_invalid_padding="raise", 
+                                             )
+
+        self.assertEqual(count, 43)
+        
+
+class TestPairedBwTrack(unittest.TestCase):
+    def setUp(self):
+        self._bw_pl_path = "RGTools/large_files/ENCFF565BWR.pl.bw"
+        self._bw_mn_path = "RGTools/large_files/ENCFF775FNU.mn.bw"
+
+        super().setUp()
+
+    def tearDown(self):
+        pass
+
+    def test_count_single_region(self):
+        bw_track = PairedBwTrack(self._bw_pl_path, self._bw_mn_path)
+
+        count = bw_track.count_single_region("chr1", 
+                                             1000698, 
+                                             1000953, 
+                                             strand="+", 
+                                             output_type="raw_count", 
+                                             l_pad=0, 
+                                             r_pad=0, 
+                                             min_len_after_padding=50, 
+                                             method_resolving_invalid_padding="raise", 
+                                             )
+        
+        self.assertEqual(count, 43)
+
+        count = bw_track.count_single_region("chr1", 
+                                             1000698, 
+                                             1000953, 
+                                             strand="-", 
+                                             output_type="RPK", 
+                                             l_pad=0, 
+                                             r_pad=0, 
+                                             min_len_after_padding=50, 
+                                             method_resolving_invalid_padding="raise", 
+                                             )
+        
+        self.assertEqual(count, 70 / (1000953 - 1000698) * 1e3)
+
+if __name__ == '__main__':
+    unittest.main()
 
