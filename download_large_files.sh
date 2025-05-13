@@ -18,6 +18,7 @@ gunzip large_files/ENCFF156JSS.bedTRE.gz
 wget \
     -O large_files/hg38.fa.gz \
     https://hgdownload.soe.ucsc.edu/goldenPath/hg38/bigZips/hg38.fa.gz
+gunzip large_files/hg38.fa.gz
 
 wget \
     -O large_files/hg38.chrom.sizes \
