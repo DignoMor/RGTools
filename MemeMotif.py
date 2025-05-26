@@ -20,7 +20,6 @@ class MemeMotif:
 
         self._parse_meme_file(file_path)
         
-
     def _parse_meme_file(self, file_path: str):
         '''
         Parses the MEME motif file and extracts relevant information.
@@ -91,6 +90,41 @@ class MemeMotif:
                     self.motifs.append(motif_name)
                     self.motif_info_dict[motif_name] = motif_info
 
+    def write_meme_file(self, file_path: str):
+        '''
+        Writes the MEME motif file to the given file path.
+        '''
+        with open(file_path, "w") as f:
+            f.write("MEME version {}\n".format(str(self.get_meme_version())))
+            f.write("\n")
+            f.write("ALPHABET={}\n".format(str(self.get_alphabet())))
+            f.write("\n")
+            f.write("strands: {}\n".format(" ".join(self.get_strands())))
+            f.write("\n")
+            f.write("Background letter frequencies\n")
+            for alphabet, freq in zip(self.get_alphabet(), self.get_bg_freq()):
+                f.write("{} {} ".format(alphabet, freq))
+            
+            f.write("\n")
+            f.write("\n")
+
+            for motif_name in self.get_motif_list():
+                f.write("MOTIF {}\n".format(motif_name))
+                f.write("letter-probability matrix: alength={} w={} nsites={} E={}\n".format(
+                    self.get_motif_alphabet_length(motif_name),
+                    self.get_motif_length(motif_name),
+                    self.get_motif_num_source_sites(motif_name),
+                    self.get_motif_source_eval(motif_name)
+                ))
+                
+                pwm = self.get_motif_pwm(motif_name)
+                for i in range(pwm.shape[0]):
+                    f.write("\t".join(map(lambda x: "{:.6f}".format(x), pwm[i])))
+                    f.write("\n")
+
+                f.write("\n")
+
+            
     def get_meme_version(self):
         '''
         Returns the version of the MEME motif file.

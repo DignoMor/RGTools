@@ -22,12 +22,28 @@ class TestMemeMotif(unittest.TestCase):
         with open(self._meme_file_path, "wb") as f:
             f.write(response.content)
 
-
     def tearDown(self):
         if os.path.exists(self._test_dir):
             shutil.rmtree(self._test_dir)
 
         return super().tearDown()
+    
+    def test_write_meme_file(self):
+        meme = MemeMotif(self._meme_file_path)
+        meme.write_meme_file(os.path.join(self._test_dir, "test_motifs_copy.meme"))
+
+        output_meme = MemeMotif(os.path.join(self._test_dir, "test_motifs_copy.meme"))
+        self.assertEqual(meme.get_meme_version(), output_meme.get_meme_version())
+        self.assertEqual(meme.get_alphabet(), output_meme.get_alphabet())
+        self.assertEqual(meme.get_strands(), output_meme.get_strands())
+        self.assertEqual(meme.get_bg_freq(), output_meme.get_bg_freq())
+        self.assertEqual(meme.get_motif_list(), output_meme.get_motif_list())
+        self.assertTrue((meme.get_motif_pwm("crp") == output_meme.get_motif_pwm("crp")).all())
+        self.assertEqual(meme.get_motif_alphabet_length("crp"), output_meme.get_motif_alphabet_length("crp"))
+        self.assertEqual(meme.get_motif_length("crp"), output_meme.get_motif_length("crp"))
+        self.assertEqual(meme.get_motif_num_source_sites("crp"), output_meme.get_motif_num_source_sites("crp"))
+        self.assertEqual(meme.get_motif_source_eval("crp"), output_meme.get_motif_source_eval("crp"))
+        
 
     def test_get_meme_version(self):
         meme = MemeMotif(self._meme_file_path)
