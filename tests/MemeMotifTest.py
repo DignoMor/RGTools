@@ -4,6 +4,8 @@ import requests
 import shutil
 import os
 
+import numpy as np
+
 from ..MemeMotif import MemeMotif
 
 class TestMemeMotif(unittest.TestCase):
@@ -43,24 +45,38 @@ class TestMemeMotif(unittest.TestCase):
         self.assertEqual(meme.get_motif_length("crp"), output_meme.get_motif_length("crp"))
         self.assertEqual(meme.get_motif_num_source_sites("crp"), output_meme.get_motif_num_source_sites("crp"))
         self.assertEqual(meme.get_motif_source_eval("crp"), output_meme.get_motif_source_eval("crp"))
-        
 
     def test_get_meme_version(self):
         meme = MemeMotif(self._meme_file_path)
         version = meme.get_meme_version()
         self.assertEqual(version, "4")
     
+    def test_set_meme_version(self):
+        meme = MemeMotif(self._meme_file_path)
+        meme.set_meme_version("5")
+        self.assertEqual(meme.get_meme_version(), "5")
+
     def test_get_alphabet(self):
         meme = MemeMotif(self._meme_file_path)
         alphabet = meme.get_alphabet()
         self.assertEqual(alphabet, "ACGT")
     
+    def test_set_alphabet(self):
+        meme = MemeMotif(self._meme_file_path)
+        meme.set_alphabet("ACGTN")
+        self.assertEqual(meme.get_alphabet(), "ACGTN")
+
     def test_get_strands(self):
         meme = MemeMotif(self._meme_file_path)
         strands = meme.get_strands()
         self.assertEqual(len(strands), 2)
         self.assertEqual(strands[0], "+")
         self.assertEqual(strands[1], "-")
+
+    def test_set_strands(self):
+        meme = MemeMotif(self._meme_file_path)
+        meme.set_strands(["+", "-", "."])
+        self.assertEqual(meme.get_strands(), ["+", "-", "."])
 
     def test_get_bg_freq(self):
         meme = MemeMotif(self._meme_file_path)
@@ -70,6 +86,11 @@ class TestMemeMotif(unittest.TestCase):
         self.assertAlmostEqual(bg_freq[1], 0.183)
         self.assertAlmostEqual(bg_freq[2], 0.209)
         self.assertAlmostEqual(bg_freq[3], 0.306)
+    
+    def test_set_bg_freq(self):
+        meme = MemeMotif(self._meme_file_path)
+        meme.set_bg_freq({"A": 0.25, "C": 0.25, "G": 0.15, "T": 0.35})
+        self.assertEqual(meme.get_bg_freq(), {"A": 0.25, "C": 0.25, "G": 0.15, "T": 0.35})
 
     def test_get_motif_list(self):
         meme = MemeMotif(self._meme_file_path)
@@ -105,3 +126,25 @@ class TestMemeMotif(unittest.TestCase):
         meme = MemeMotif(self._meme_file_path)
         source_eval = meme.get_motif_source_eval("crp")
         self.assertEqual(source_eval, 4.1e-9)
+    
+    def test_add_motif(self):
+        meme = MemeMotif(self._meme_file_path)
+        dpe_pwm = np.array([[0.46808, 0.06382, 0.383, 0.0851],
+                            [0.0, 0.21, 0.79, 0.0],
+                            [0.5745, 0.0425, 0.021, 0.362],
+                            [0.043, 0.489, 0.021, 0.447],
+                            [0.064, 0.255, 0.66, 0.021],
+                            [0.064, 0.1702, 0.1915, 0.5743]])
+
+        meme.add_motif("dpe", {"alphabet_length": 4, 
+                               "motif_length": 6, 
+                               "num_source_sites": 1000, 
+                               "source_eval": 1, 
+                               "pwm": dpe_pwm})
+
+        self.assertEqual(meme.get_motif_list(), ["crp", "lexA", "dpe"])
+        self.assertEqual(meme.get_motif_alphabet_length("dpe"), 4)
+        self.assertEqual(meme.get_motif_length("dpe"), 6)
+        self.assertEqual(meme.get_motif_num_source_sites("dpe"), 1000)
+        self.assertEqual(meme.get_motif_source_eval("dpe"), 1)
+        self.assertTrue((meme.get_motif_pwm("dpe") == dpe_pwm).all())

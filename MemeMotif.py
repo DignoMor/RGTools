@@ -3,12 +3,13 @@ import re
 import numpy as np
 
 class MemeMotif:
-    def __init__(self, file_path: str):
+    def __init__(self, file_path: str = None):
         '''
         Initializes the MemeMotif object with the given file path.
 
         Keyword arguments:
-        - file_path: Path to the MEME motif file.
+        - file_path: Path to the MEME motif file. If None, 
+        the object will be initialized as an empty MemeMotif object.
         '''
         self.file_path = file_path
         self.version = None
@@ -18,7 +19,8 @@ class MemeMotif:
         self.motifs = []
         self.motif_info_dict = {}
 
-        self._parse_meme_file(file_path)
+        if file_path:
+            self._parse_meme_file(file_path)
         
     def _parse_meme_file(self, file_path: str):
         '''
@@ -124,6 +126,20 @@ class MemeMotif:
 
                 f.write("\n")
 
+    def clone_empty(self):
+        '''
+        Clones the current MemeMotif object.
+
+        Returns:
+        - A new MemeMotif object with the same metadata as self, but 
+        no motifs.
+        '''
+        clone = MemeMotif()
+        clone.version = self.version
+        clone.alphabet = self.alphabet
+        clone.strands = self.strands
+        clone.bg_freq = self.bg_freq
+        return clone
             
     def get_meme_version(self):
         '''
@@ -133,6 +149,15 @@ class MemeMotif:
         - A string representing the version of the MEME motif file.
         '''
         return self.version
+    
+    def set_meme_version(self, version: str):
+        '''
+        Sets the version of the MEME motif file.
+
+        Keyword arguments:
+        - version: A string representing the version of the MEME motif file.
+        '''
+        self.version = version
 
     def get_alphabet(self):
         '''
@@ -142,7 +167,16 @@ class MemeMotif:
         - A string representing the alphabet used in the MEME motif file.
         '''
         return self.alphabet
+    
+    def set_alphabet(self, alphabet: str):
+        '''
+        Sets the alphabet used in the MEME motif file.
 
+        Keyword arguments:
+        - alphabet: A string representing the alphabet used in the MEME motif file.
+        '''
+        self.alphabet = alphabet
+    
     def get_strands(self):
         '''
         Returns the strands used in the MEME motif file.
@@ -151,6 +185,15 @@ class MemeMotif:
         - A list of strings representing the strands used in the MEME motif file.
         '''
         return self.strands
+    
+    def set_strands(self, strands: list):
+        '''
+        Sets the strands used in the MEME motif file.
+
+        Keyword arguments:
+        - strands: A list of strings representing the strands used in the MEME motif file.
+        '''
+        self.strands = strands
 
     def get_bg_freq(self):
         '''
@@ -160,6 +203,15 @@ class MemeMotif:
         - A dictionary with keys being the alphabet characters and values being their frequencies.
         '''
         return self.bg_freq
+    
+    def set_bg_freq(self, bg_freq: dict):
+        '''
+        Sets the background frequency used in the MEME motif file.
+
+        Keyword arguments:
+        - bg_freq: A dictionary with keys being the alphabet characters and values being their frequencies.
+        '''
+        self.bg_freq = bg_freq
 
     def get_motif_list(self):
         '''
@@ -231,4 +283,26 @@ class MemeMotif:
         '''
         return self.motif_info_dict[motif_name]["source_eval"]
     
+    def add_motif(self, motif_name: str, motif_info: dict):
+        '''
+        Adds a motif to the MEME motif file.
+
+        Keyword arguments:
+        - motif_name: Name of the motif.
+        - motif_info: A dictionary containing the motif information. 
+            The dictionary should have the following keys:
+            * alphabet_length: An integer representing the length of the alphabet used in the motif.
+            * motif_length: An integer representing the length of the motif.
+            * num_source_sites: An integer representing the number of source sites for the motif.
+            * source_eval: A float representing the source E-value for the motif.
+            * pwm: A 2D numpy array representing the PWM of the motif. The 
+            array should have shape (motif_length, alphabet_length).
+        '''
+        self.motifs.append(motif_name)
+
+        for info_field in ["alphabet_length", "motif_length", "num_source_sites", "source_eval"]:
+            if info_field not in motif_info:
+                raise ValueError(f"The motif info dictionary must contain the key {info_field}.")
+
+        self.motif_info_dict[motif_name] = motif_info
 
