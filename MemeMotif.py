@@ -2,6 +2,8 @@
 import re 
 import numpy as np
 
+from .utils import reverse_complement as RC
+
 class MemeMotif:
     def __init__(self, file_path: str = None):
         '''
@@ -306,3 +308,79 @@ class MemeMotif:
 
         self.motif_info_dict[motif_name] = motif_info
 
+    @staticmethod
+    def calculate_pwm_score(seq, pwm, alphabet="ACGT", bg_freq=None, reverse_complement=False):
+        '''
+        Calculate the score of a sequence based on a given position weight matrix (PWM).
+        
+        Keyword arguments:
+        - seq: sequence to score, must be the same length as the pwm.
+        - pwm: position weight matrix, a 2D numpy array where each row 
+              corresponds to a position in the sequence and each column 
+              corresponds to a character in the alphabet. 
+              shape = (num_positions, num_alphabet_chars)
+        - bg_freq: background frequency of the alphabet, a 1D numpy array
+        - reverse_complement: whether to reverse complement the sequence while matching for motifs.
+
+        Returns:
+        - score: the score of the sequence based on the PWM.
+        '''
+        if not len(seq) == pwm.shape[0]:
+            raise ValueError("Length of sequence must be the same as the length of the PWM.")
+        
+        if not bg_freq: 
+            bg_freq = np.ones(len(alphabet)) / len(alphabet)
+
+        if reverse_complement:
+            seq = RC(seq)
+
+        alphabet2idx = {char: idx for idx, char in enumerate(alphabet)}
+        score = 0
+
+        for i, char in enumerate(seq):
+            score += np.log10(pwm[i, alphabet2idx[char]]) - \
+                np.log10(bg_freq[alphabet2idx[char]])
+
+        return score
+
+    @staticmethod
+    def search_one_motif(seq, motif_alphabet, motif_pwm, bg_freq=None, reverse_complement=False):
+        '''
+        Search for a single motif in a sequence.
+        Returns array of weighted score based on pwm.
+
+        Keyword arguments:
+        - seq: sequence to search
+        - motif_pwm: PWM of motif to search for
+        - reverse_complement: whether to reverse complement the sequence while matching for motifs.
+
+        Returns:
+        - output_arr: array of scores for each position in the sequence.
+                      If motif length is odd, then (motif_len - 1) / 2 
+                      min value of the output array will be padded to the result on both ends. 
+                      If the length is even, then motif_len / 2 - 1 values will be
+                      padded to the left and motif_len / 2 values will be padded 
+                      to the right.
+        '''
+        seq = seq.upper()
+
+        output_arr = np.zeros(len(seq), 
+                              dtype=np.float64, 
+                              )
+
+        motif_len = motif_pwm.shape[0]
+        seq_len = len(seq)
+
+        for i in range(seq_len - motif_len + 1):
+            target_seq = seq[i:i + motif_len]
+            score = MemeMotif.calculate_pwm_score(target_seq, motif_pwm, 
+                                                  motif_alphabet, bg_freq, 
+                                                  reverse_complement=reverse_complement,
+                                                  )
+
+            output_arr[i + int(motif_len / 2)] = score
+        
+        output_arr[:(motif_len-1) // 2] = output_arr.min()
+        output_arr[-motif_len // 2:] = output_arr.min()
+
+        return output_arr

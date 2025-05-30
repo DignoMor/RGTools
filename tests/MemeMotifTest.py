@@ -148,3 +148,29 @@ class TestMemeMotif(unittest.TestCase):
         self.assertEqual(meme.get_motif_num_source_sites("dpe"), 1000)
         self.assertEqual(meme.get_motif_source_eval("dpe"), 1)
         self.assertTrue((meme.get_motif_pwm("dpe") == dpe_pwm).all())
+
+    def test_calculate_pwm_score(self):
+        meme = MemeMotif(self._meme_file_path)
+        motif_pwm = meme.get_motif_pwm("crp")
+        score = MemeMotif.calculate_pwm_score("CGCGATCGATCGTTAAGTT", 
+                                              motif_pwm, 
+                                              bg_freq=meme.get_bg_freq(), 
+                                              )
+        self.assertAlmostEqual(score, -0.45161817)
+        score = MemeMotif.calculate_pwm_score("CGCGATCGATCGTTAAGTT", 
+                                              motif_pwm, 
+                                              bg_freq=meme.get_bg_freq(), 
+                                              reverse_complement=True, 
+                                              )
+        self.assertAlmostEqual(score, -np.inf)
+
+    def test_search_one_motif(self):
+        meme = MemeMotif(self._meme_file_path)
+        score_arr = MemeMotif.search_one_motif("CGCGATCGATCGTTAAGTTG", 
+                                               meme.get_alphabet(), 
+                                               meme.get_motif_pwm("crp"), 
+                                               bg_freq=meme.get_bg_freq(), 
+                                               )
+        self.assertEqual(len(score_arr), 20)
+        self.assertAlmostEqual(score_arr[1], -np.inf)
+        self.assertAlmostEqual(score_arr[9], -0.45161817)
