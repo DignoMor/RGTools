@@ -378,9 +378,8 @@ class MemeMotif:
                                                   reverse_complement=reverse_complement,
                                                   )
 
-            output_arr[i + int(motif_len / 2)] = score
+            output_arr[i] = score
         
-        output_arr[:(motif_len-1) // 2] = output_arr.min()
-        output_arr[-motif_len // 2:] = output_arr.min()
+        output_arr[-motif_len+1:] = output_arr.min()
 
         return output_arr

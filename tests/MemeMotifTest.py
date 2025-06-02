@@ -173,4 +173,4 @@ class TestMemeMotif(unittest.TestCase):
                                                )
         self.assertEqual(len(score_arr), 20)
         self.assertAlmostEqual(score_arr[1], -np.inf)
-        self.assertAlmostEqual(score_arr[9], -0.45161817)
+        self.assertAlmostEqual(score_arr[0], -0.45161817)
