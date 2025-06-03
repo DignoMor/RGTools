@@ -4,6 +4,7 @@ import pandas as pd
 from Bio import SeqIO
 
 from .GenomicElements import GenomicElements
+from .BedTable import BedTable3
 
 class ExogeneousSequences(GenomicElements):
     '''
@@ -20,11 +21,35 @@ class ExogeneousSequences(GenomicElements):
     As a result this class read sequences into 
     genome for further analysis.
     '''
-    def __init__(self, region_path, region_file_type, fasta_path):
-        super().__init__(region_path, region_file_type, fasta_path)
+    def __init__(self, fasta_path):
+        self.region_file_type = "bed3"
+        self._anno_arr_dict = {}
+        self._anno_length_dict = {}
+        self.fasta_path = fasta_path
 
         self.sequence_df = self.read_fasta_sequences(fasta_path)
     
+    @property
+    def region_path(self):
+        raise NotImplementedError("ExogeneousSequences does not use region_path. ")
+    
+    def get_region_bed_table(self):
+        '''
+        Return a bed table object for the sequences.
+        Creates a BedTable3 with each sequence as a separate region.
+        '''
+        bt = BedTable3(enable_sort=False)
+        
+        # Create a dataframe with each sequence as a region
+        # Use sequence name as chromosome, start=0, end=sequence length
+        region_df = pd.DataFrame({
+            "chrom": self.sequence_df.index,
+            "start": 0,
+            "end": [len(seq) for seq in self.sequence_df["seqs"]], 
+        })
+        
+        bt.load_from_dataframe(region_df)
+        return bt
     
     def read_fasta_sequences(self, fasta_path):
         '''
@@ -53,5 +78,4 @@ class ExogeneousSequences(GenomicElements):
     @staticmethod
     def set_parser_exogeneous_sequences(parser):
         ExogeneousSequences.set_parser_genome(parser)
-        ExogeneousSequences.set_parser_genomic_element_region(parser)
 
