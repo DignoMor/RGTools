@@ -110,6 +110,21 @@ class GenomicElements:
 
         return ohe
 
+    def export_exogeneous_sequences(self, fasta_path):
+        '''
+        Export regions as exogeneous sequences.
+
+        Keyword arguments:
+        - fasta_path: Path to save the exogeneous sequences.
+
+        Returns:
+        - None
+        '''
+        for region in self.get_region_bed_table().iter_regions():
+            seq = self.get_region_seq(region["chrom"], region["start"], region["end"])
+            with open(fasta_path, "a") as handle:
+                handle.write(f">{region['chrom']}:{region['start']}-{region['end']}\n{seq}\n")
+
     def get_region_bed_table(self):
         '''
         Return a bed table object for the region file.

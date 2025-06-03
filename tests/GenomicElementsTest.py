@@ -39,6 +39,18 @@ class TestGenomicElements(unittest.TestCase):
     def test_one_hot_encoding(self):
         encoding = GenomicElements.one_hot_encoding("ACGT")
         self.assertTrue((encoding == np.array([[1,0,0,0], [0,1,0,0], [0,0,1,0], [0,0,0,1]])).all())
+    
+    def test_export_exogeneous_sequences(self):
+        ge = self._init_GenomicElements()
+        ge.export_exogeneous_sequences(os.path.join(self.__wdir, "test.fa"))
+
+        with open(os.path.join(self.__wdir, "test.fa"), "r") as handle:
+            lines = handle.readlines()
+            self.assertEqual(len(lines), 8)
+            self.assertEqual(lines[0], ">chr1:1-5\n")
+            self.assertEqual(lines[1], "NNNN\n")
+            self.assertEqual(lines[2], ">chr1:8-12\n")
+            self.assertEqual(lines[3], "NNNN\n")
 
     def test_get_num_regions(self):
         ge = self._init_GenomicElements()
