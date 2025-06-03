@@ -1,4 +1,6 @@
 
+import os
+
 import pandas as pd
 
 from Bio import SeqIO
@@ -78,4 +80,22 @@ class ExogeneousSequences(GenomicElements):
     @staticmethod
     def set_parser_exogeneous_sequences(parser):
         ExogeneousSequences.set_parser_genome(parser)
+    
+    @staticmethod
+    def write_sequences_to_fasta(seq_ids: list, sequences: list, fasta_path: str):
+        '''
+        Write sequences to a fasta file.
+
+        Key arguments:
+            - seq_ids: list of sequence ids
+            - sequences: list of sequences
+            - fasta_path: path to the fasta file
+        '''
+        if os.path.exists(fasta_path):
+            raise ValueError(f"File {fasta_path} already exists.")
+        
+        with open(fasta_path, "w") as f:
+            for seq_id, seq in zip(seq_ids, sequences):
+                f.write(f">{seq_id}\n{seq}\n")
+
 
