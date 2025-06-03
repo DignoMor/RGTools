@@ -1,4 +1,6 @@
 
+import os 
+
 import numpy as np
 
 from Bio import SeqIO
@@ -120,6 +122,9 @@ class GenomicElements:
         Returns:
         - None
         '''
+        if os.path.exists(fasta_path):
+            raise ValueError(f"File {fasta_path} already exists.")
+        
         for region in self.get_region_bed_table().iter_regions():
             seq = self.get_region_seq(region["chrom"], region["start"], region["end"])
             with open(fasta_path, "a") as handle:
