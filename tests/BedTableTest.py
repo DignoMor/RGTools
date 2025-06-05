@@ -10,7 +10,8 @@ from ..BedTable import BedRegion, \
                        BedTable3, \
                        BedTable6, \
                        BedTable6Plus, \
-                       BedTablePairEnd
+                       BedTablePairEnd, \
+                       BedTable3Plus
 
 from ..exceptions import InvalidBedRegionException, \
                          InvalidStrandnessException
@@ -333,6 +334,92 @@ class TestBedTable3(TestBedTable):
 
         return bed_table
     
+class TestBedTable3Plus(TestBedTable):
+    def setUp(self) -> None:
+        super().setUp()
+        self.extra_column_names = ["score", "annotation"]
+        self.extra_column_dtype = [float, str]
+        self.data_df = self.__class__._gen_test_bed_file(self.data_file)
+
+    def tearDown(self) -> None:
+        super().tearDown()
+
+    @staticmethod
+    def _gen_test_bed_file(bed_path):
+        '''
+        Generate a test bed file with extra columns.
+        Return the data in pd.DataFrame format
+
+        Keyword Arguments:
+        - bed_path: str, path to the bed file.
+
+        Return:
+        - data_df: pd.DataFrame for data contained in the generated bed.
+        '''
+        data_df = pd.DataFrame({
+            "chrom": ["chr1", "chr1", "chr2", "chr2"],
+            "start": [1, 8, 3, 4],
+            "end": [5, 12, 7, 8],
+            "score": [0.5, 0.8, 0.3, 0.9],
+            "annotation": ["gene1", "gene2", "gene3", "gene4"]
+        })
+
+        data_df.to_csv(bed_path, 
+                       sep="\t", 
+                       header=False, 
+                       index=False, 
+                       )
+        
+        return data_df
+
+    def test_get_region_extra_column(self):
+        bed_table = self.__init_test_bed_table()
+
+        scores = bed_table.get_region_extra_column("score")
+        annotations = bed_table.get_region_extra_column("annotation")
+
+        self.assertArrayEqual(scores, self.data_df["score"].values)
+        self.assertArrayEqual(annotations, self.data_df["annotation"].values)
+
+    def test_load_from_dataframe(self):
+        bed_table = self.__init_test_bed_table()
+        bed_table.load_from_dataframe(self.data_df.copy())
+
+        self.assertArrayEqual(bed_table.to_dataframe().values, self.data_df.values)
+
+    def test_load_from_file(self):
+        bed_table = self.__init_test_bed_table()
+        bed_table.load_from_file(self.data_file)
+
+        self.assertArrayEqual(bed_table.to_dataframe().values, self.data_df.values)
+
+    def test_region_subset(self):
+        bed_table = self.__init_test_bed_table()
+
+        chrom = "chr2"
+        lboundary = 2
+        rboundary = 7
+
+        subset_bed_table = bed_table.region_subset(chrom=chrom,
+                                                   start=lboundary, 
+                                                   end=rboundary,
+                                                   )
+
+        expected_df = self.data_df.loc[(self.data_df["chrom"] == chrom) & \
+                                      (self.data_df["start"] >= lboundary) & \
+                                      (self.data_df["end"] <= rboundary)]
+
+        self.assertArrayEqual(subset_bed_table.to_dataframe().values,
+                              expected_df.values)
+
+    def __init_test_bed_table(self):
+        bed_table = BedTable3Plus(
+            extra_column_names=self.extra_column_names,
+            extra_column_dtype=self.extra_column_dtype
+        )
+        bed_table.load_from_dataframe(self.data_df.copy())
+        return bed_table
+
 class TestBedTable6(TestBedTable):
     def setUp(self) -> None:
         super().setUp()
@@ -591,6 +678,7 @@ class TestBedTable6Plus(TestBedTable):
 
     # TODO: add test for:
     # * __force_dtype
+
 
 class TestBedTablePairEnd(TestBedTable):
     def setUp(self) -> None:

@@ -496,6 +496,55 @@ class BedTable3:
 
         return ind1, ind2
 
+class BedTable3Plus(BedTable3):
+    def __init__(self, 
+                 extra_column_names: list,
+                 extra_column_dtype: list = None,
+                 **kwargs, 
+                 ):
+        self._extra_column_names = extra_column_names
+
+        if not extra_column_dtype:
+            self._extra_column_dtype = [str] * len(extra_column_names)
+        else:
+            self._extra_column_dtype = extra_column_dtype
+        
+        super().__init__(**kwargs)
+
+    @property
+    def column_names(self):
+        return ["chrom", "start", "end"] + self.extra_column_names
+    
+    @property
+    def column_types(self):
+        column_type = super().column_types
+        for extra_col, extra_col_dtype in zip(self.extra_column_names, self.extra_column_dtype):
+            column_type[extra_col] = extra_col_dtype
+        
+        self._dtype2pddtype(column_type)
+
+        return column_type
+    
+    @property
+    def extra_column_names(self):
+        return self._extra_column_names
+    
+    @property
+    def extra_column_dtype(self):
+        return self._extra_column_dtype
+
+    def get_region_extra_column(self, column_name) -> np.array:
+        '''
+        Return a np.array of extra column data for all the regions. Given the column name.
+        '''
+        return self._data_df[column_name].values
+    
+    def _clone_empty(self):
+        new_bed_table = self.__class__(self.extra_column_names, 
+                                       self.extra_column_dtype, 
+                                       enable_sort=self.enable_sort,
+                                       )
+        return new_bed_table
 
 class BedTable6(BedTable3):
     def __init__(self, **kwargs):
