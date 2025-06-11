@@ -24,6 +24,12 @@ class ExogeneousSequences(GenomicElements):
     genome for further analysis.
     '''
     def __init__(self, fasta_path):
+        '''
+        Initialize the ExogeneousSequences object.
+
+        Key arguments:
+            - fasta_path: path to the fasta file
+        '''
         self.region_file_type = "bed3"
         self._anno_arr_dict = {}
         self._anno_length_dict = {}
@@ -70,6 +76,12 @@ class ExogeneousSequences(GenomicElements):
                              index=seq_names,
                              )
 
+    def get_sequence_ids(self):
+        '''
+        Return an array of sequence ids.
+        '''
+        return self.get_region_bed_table().get_chrom_names()
+    
     @staticmethod
     def set_parser_genome(parser):
         parser.add_argument("--fasta", 

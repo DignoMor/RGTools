@@ -39,3 +39,7 @@ class TestExogeneousSequences(unittest.TestCase):
             seqs.append(ge.get_region_seq(region["chrom"], region["start"], region["end"]))
         
         self.assertEqual(seqs[0], "ACGTTTTCTG")
+    
+    def test_get_sequence_ids(self):
+        es = ExogeneousSequences(self.__fasta_path)
+        self.assertEqual(es.get_sequence_ids()[1], "chr1:123500-123512")
