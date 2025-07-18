@@ -82,6 +82,9 @@ class ExogeneousSequences(GenomicElements):
         '''
         return self.get_region_bed_table().get_chrom_names()
     
+    def get_all_region_seqs(self):
+        return self.sequence_df["seqs"].tolist()
+
     @staticmethod
     def set_parser_genome(parser):
         parser.add_argument("--fasta", 

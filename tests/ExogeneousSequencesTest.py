@@ -18,6 +18,8 @@ class TestExogeneousSequences(unittest.TestCase):
         with open(self.__fasta_path, "w") as handle:
             handle.write(">chr2:127048023-127048033\nACGTTTTCTG\n")
             handle.write(">chr1:123500-123512\nGTGTAATTACAA\n")
+            # record of unequal length
+            handle.write(">chr3:123501-123511\nTGTAATTACA\n")
 
         return super().setUp()
     
@@ -43,3 +45,8 @@ class TestExogeneousSequences(unittest.TestCase):
     def test_get_sequence_ids(self):
         es = ExogeneousSequences(self.__fasta_path)
         self.assertEqual(es.get_sequence_ids()[1], "chr1:123500-123512")
+    
+    def test_get_all_region_seqs(self):
+        es = ExogeneousSequences(self.__fasta_path)
+        self.assertEqual(es.get_all_region_seqs()[1], "GTGTAATTACAA")
+        self.assertEqual(es.get_all_region_seqs()[2], "TGTAATTACA")
