@@ -71,10 +71,15 @@ class ExogeneousSequences(GenomicElements):
             seq_names.append(str(record.id))
             seqs.append(str(record.seq))
         
-        return pd.DataFrame({"seqs": seqs,
-                             }, 
-                             index=seq_names,
-                             )
+        seq_lens = [len(seq) for seq in seqs]
+        
+        out_df = pd.DataFrame({"seqs": seqs,
+                               "lens": seq_lens,
+                              }, 
+                              index=seq_names,
+                              )
+        
+        return out_df
 
     def get_sequence_ids(self):
         '''
@@ -84,7 +89,10 @@ class ExogeneousSequences(GenomicElements):
     
     def get_all_region_seqs(self):
         return self.sequence_df["seqs"].tolist()
-
+    
+    def get_all_region_lens(self):
+        return self.sequence_df["lens"].tolist()
+    
     @staticmethod
     def set_parser_genome(parser):
         parser.add_argument("--fasta", 
