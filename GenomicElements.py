@@ -5,7 +5,7 @@ import numpy as np
 
 from Bio import SeqIO
 
-from .BedTable import BedTable3, BedTable6, BedTable6Plus
+from .BedTable import BedTable3, BedTable6, BedTable6Plus, BedTable3Plus
 
 class GenomicElements:
     '''
@@ -39,6 +39,7 @@ class GenomicElements:
             "bed3": BedTable3,
             "bed6": BedTable6,
             "bed6gene": GenomicElements.BedTable6Gene,
+            "bed3gene": GenomicElements.BedTable3Gene,
         }
 
     @staticmethod
@@ -48,6 +49,18 @@ class GenomicElements:
         that can load bed6gene annotations.
         '''
         bt = BedTable6Plus(extra_column_names=["gene_symbol"], 
+                           extra_column_dtype=[str], 
+                           enable_sort=enable_sort,
+                           )
+        return bt
+
+    @staticmethod
+    def BedTable3Gene(enable_sort=True):
+        '''
+        Helper function to return a BedTable3Plus object
+        that can load bed3gene annotations.
+        '''
+        bt = BedTable3Plus(extra_column_names=["gene_symbol"], 
                            extra_column_dtype=[str], 
                            enable_sort=enable_sort,
                            )
