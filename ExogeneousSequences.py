@@ -5,7 +5,7 @@ import pandas as pd
 
 from Bio import SeqIO
 
-from .GenomicElements import GeneralElements
+from .GeneralElements import GeneralElements
 from .BedTable import BedTable3
 
 class ExogeneousSequences(GeneralElements):
@@ -95,7 +95,7 @@ class ExogeneousSequences(GeneralElements):
     
     def get_all_region_seqs(self):
         return self.sequence_df["seqs"].tolist()
-
+ 
     def get_all_region_lens(self):
         return self.sequence_df["lens"].tolist()
     
