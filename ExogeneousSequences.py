@@ -5,23 +5,21 @@ import pandas as pd
 
 from Bio import SeqIO
 
-from .GenomicElements import GenomicElements
+from .GenomicElements import GeneralElements
 from .BedTable import BedTable3
 
-class ExogeneousSequences(GenomicElements):
+class ExogeneousSequences(GeneralElements):
     '''
     Class for Exogeneous sequences.
 
-    This class inherits from GenomicElements 
-    since Geneomic Elements is a special case 
-    of Exogeneous sequences. Exogeneous sequences 
-    class implement extra set of fasta manipulation 
-    functions.
+    This class inherits from GeneralElements and provides
+    functionality for handling exogeneous sequences (sequences
+    that are not part of a reference genome).
 
     Usually exogeneous sequences are small sets 
     of sequences compared to reference genome. 
     As a result this class read sequences into 
-    genome for further analysis.
+    memory for further analysis.
     '''
     def __init__(self, fasta_path):
         '''
@@ -30,13 +28,20 @@ class ExogeneousSequences(GenomicElements):
         Key arguments:
             - fasta_path: path to the fasta file
         '''
-        self.region_file_type = "bed3"
-        self._anno_arr_dict = {}
-        self._anno_length_dict = {}
-        self.fasta_path = fasta_path
+        super().__init__()
+        self._fasta_path = fasta_path
+        self._region_file_type = "bed3"
 
         self.sequence_df = self.read_fasta_sequences(fasta_path)
     
+    @property
+    def fasta_path(self):
+        return self._fasta_path
+
+    @property
+    def region_file_type(self):
+        return self._region_file_type
+
     @property
     def region_path(self):
         raise NotImplementedError("ExogeneousSequences does not use region_path. ")
@@ -67,9 +72,10 @@ class ExogeneousSequences(GenomicElements):
         seq_names = []
         seqs = []
 
-        for record in SeqIO.parse(fasta_path, "fasta"):
-            seq_names.append(str(record.id))
-            seqs.append(str(record.seq))
+        with open(fasta_path, "r") as f:
+            for record in SeqIO.parse(f, "fasta"):
+                seq_names.append(str(record.id))
+                seqs.append(str(record.seq))
         
         seq_lens = [len(seq) for seq in seqs]
         
@@ -89,9 +95,41 @@ class ExogeneousSequences(GenomicElements):
     
     def get_all_region_seqs(self):
         return self.sequence_df["seqs"].tolist()
-    
+
     def get_all_region_lens(self):
         return self.sequence_df["lens"].tolist()
+    
+    def apply_logical_filter(self, logical, new_fasta_path):
+        '''
+        Apply logical filter to the sequences.
+
+        Keyword arguments:
+        - logical: np.Array, Logical array to filter the sequences.
+        - new_fasta_path: Path to save the new fasta file for filtered sequences.
+
+        Returns:
+        - a new ExogeneousSequences object with the filtered sequences.
+        '''
+        if os.path.exists(new_fasta_path):
+            raise ValueError(f"File {new_fasta_path} already exists.")
+        
+        # Filter sequences based on logical array
+        filtered_df = self.sequence_df[logical]
+        
+        # Write filtered sequences to new fasta file
+        with open(new_fasta_path, "w") as f:
+            for seq_id, row in filtered_df.iterrows():
+                f.write(f">{seq_id}\n{row['seqs']}\n")
+        
+        # Create new ExogeneousSequences object
+        result_es = self.__class__(fasta_path=new_fasta_path)
+        
+        # Copy filtered annotations
+        for anno_name, anno_arr in self._anno_arr_dict.items():
+            new_anno_arr = anno_arr[logical]
+            result_es.load_region_anno_from_arr(anno_name, new_anno_arr)
+
+        return result_es
     
     @staticmethod
     def set_parser_genome(parser):
