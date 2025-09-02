@@ -39,7 +39,7 @@
                                 <a class="function" href="#GenomicElements.__init__">GenomicElements</a>
                         </li>
                         <li>
-                                <a class="variable" href="#GenomicElements.region_path">region_path</a>
+                                <a class="variable" href="#GenomicElements.region_file_path">region_file_path</a>
                         </li>
                         <li>
                                 <a class="variable" href="#GenomicElements.fasta_path">fasta_path</a>
@@ -112,17 +112,17 @@ RGTools<wbr>.GenomicElements    </h1>
 </span><span id="L-12"><a href="#L-12"><span class="linenos"> 12</span></a><span class="sd">    Class for Genomics elements.</span>
 </span><span id="L-13"><a href="#L-13"><span class="linenos"> 13</span></a><span class="sd">    &#39;&#39;&#39;</span>
 </span><span id="L-14"><a href="#L-14"><span class="linenos"> 14</span></a>
-</span><span id="L-15"><a href="#L-15"><span class="linenos"> 15</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">region_path</span><span class="p">,</span> <span class="n">region_file_type</span><span class="p">,</span> <span class="n">fasta_path</span><span class="p">):</span>
+</span><span id="L-15"><a href="#L-15"><span class="linenos"> 15</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">region_file_path</span><span class="p">,</span> <span class="n">region_file_type</span><span class="p">,</span> <span class="n">fasta_path</span><span class="p">):</span>
 </span><span id="L-16"><a href="#L-16"><span class="linenos"> 16</span></a><span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 </span><span id="L-17"><a href="#L-17"><span class="linenos"> 17</span></a><span class="sd">        Constructor for GenomicElements class.</span>
 </span><span id="L-18"><a href="#L-18"><span class="linenos"> 18</span></a>
 </span><span id="L-19"><a href="#L-19"><span class="linenos"> 19</span></a><span class="sd">        Keyword arguments:</span>
-</span><span id="L-20"><a href="#L-20"><span class="linenos"> 20</span></a><span class="sd">        - region_path: Path to the region file.</span>
+</span><span id="L-20"><a href="#L-20"><span class="linenos"> 20</span></a><span class="sd">        - region_file_path: Path to the region file.</span>
 </span><span id="L-21"><a href="#L-21"><span class="linenos"> 21</span></a><span class="sd">        - region_file_type: Type of the region file (see GenomicElements.get_region_file_suffix2class_dict).</span>
 </span><span id="L-22"><a href="#L-22"><span class="linenos"> 22</span></a><span class="sd">        - fasta_path: Path to the genome file.</span>
 </span><span id="L-23"><a href="#L-23"><span class="linenos"> 23</span></a><span class="sd">        &#39;&#39;&#39;</span>
 </span><span id="L-24"><a href="#L-24"><span class="linenos"> 24</span></a>        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
-</span><span id="L-25"><a href="#L-25"><span class="linenos"> 25</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">region_path</span> <span class="o">=</span> <span class="n">region_path</span>
+</span><span id="L-25"><a href="#L-25"><span class="linenos"> 25</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">region_file_path</span> <span class="o">=</span> <span class="n">region_file_path</span>
 </span><span id="L-26"><a href="#L-26"><span class="linenos"> 26</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_region_file_type</span> <span class="o">=</span> <span class="n">region_file_type</span>
 </span><span id="L-27"><a href="#L-27"><span class="linenos"> 27</span></a>        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_region_file_type</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_region_file_suffix2class_dict</span><span class="p">()</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
 </span><span id="L-28"><a href="#L-28"><span class="linenos"> 28</span></a>            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid region file type: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_region_file_type</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
@@ -223,7 +223,7 @@ RGTools<wbr>.GenomicElements    </h1>
 </span><span id="L-123"><a href="#L-123"><span class="linenos">123</span></a><span class="sd">        Return a bed table object for the region file.</span>
 </span><span id="L-124"><a href="#L-124"><span class="linenos">124</span></a><span class="sd">        &#39;&#39;&#39;</span>
 </span><span id="L-125"><a href="#L-125"><span class="linenos">125</span></a>        <span class="n">bt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_region_file_suffix2class_dict</span><span class="p">()[</span><span class="bp">self</span><span class="o">.</span><span class="n">region_file_type</span><span class="p">](</span><span class="n">enable_sort</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-</span><span id="L-126"><a href="#L-126"><span class="linenos">126</span></a>        <span class="n">bt</span><span class="o">.</span><span class="n">load_from_file</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">region_path</span><span class="p">)</span>
+</span><span id="L-126"><a href="#L-126"><span class="linenos">126</span></a>        <span class="n">bt</span><span class="o">.</span><span class="n">load_from_file</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">region_file_path</span><span class="p">)</span>
 </span><span id="L-127"><a href="#L-127"><span class="linenos">127</span></a>
 </span><span id="L-128"><a href="#L-128"><span class="linenos">128</span></a>        <span class="k">return</span> <span class="n">bt</span>
 </span><span id="L-129"><a href="#L-129"><span class="linenos">129</span></a>    
@@ -246,24 +246,24 @@ RGTools<wbr>.GenomicElements    </h1>
 </span><span id="L-146"><a href="#L-146"><span class="linenos">146</span></a>                    <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">record</span><span class="o">.</span><span class="n">seq</span><span class="p">[</span><span class="n">start</span><span class="p">:</span><span class="n">end</span><span class="p">])</span>  <span class="c1"># Convert to 0-based index</span>
 </span><span id="L-147"><a href="#L-147"><span class="linenos">147</span></a>        <span class="k">return</span> <span class="kc">None</span>
 </span><span id="L-148"><a href="#L-148"><span class="linenos">148</span></a>
-</span><span id="L-149"><a href="#L-149"><span class="linenos">149</span></a>    <span class="k">def</span> <span class="nf">apply_logical_filter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">logical</span><span class="p">,</span> <span class="n">new_region_path</span><span class="p">):</span>
+</span><span id="L-149"><a href="#L-149"><span class="linenos">149</span></a>    <span class="k">def</span> <span class="nf">apply_logical_filter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">logical</span><span class="p">,</span> <span class="n">new_region_file_path</span><span class="p">):</span>
 </span><span id="L-150"><a href="#L-150"><span class="linenos">150</span></a><span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 </span><span id="L-151"><a href="#L-151"><span class="linenos">151</span></a><span class="sd">        Apply logical filter to the regions.</span>
 </span><span id="L-152"><a href="#L-152"><span class="linenos">152</span></a>
 </span><span id="L-153"><a href="#L-153"><span class="linenos">153</span></a><span class="sd">        Keyword arguments:</span>
 </span><span id="L-154"><a href="#L-154"><span class="linenos">154</span></a><span class="sd">        - logical: np.Array, Logical array to filter the regions.</span>
-</span><span id="L-155"><a href="#L-155"><span class="linenos">155</span></a><span class="sd">        - new_region_path: Path to save the new region_file for filtered regions.</span>
+</span><span id="L-155"><a href="#L-155"><span class="linenos">155</span></a><span class="sd">        - new_region_file_path: Path to save the new region_file for filtered regions.</span>
 </span><span id="L-156"><a href="#L-156"><span class="linenos">156</span></a>
 </span><span id="L-157"><a href="#L-157"><span class="linenos">157</span></a><span class="sd">        Returns:</span>
 </span><span id="L-158"><a href="#L-158"><span class="linenos">158</span></a><span class="sd">        - a new GenomicElements object with the filtered regions.</span>
 </span><span id="L-159"><a href="#L-159"><span class="linenos">159</span></a><span class="sd">        &#39;&#39;&#39;</span>
-</span><span id="L-160"><a href="#L-160"><span class="linenos">160</span></a>        <span class="n">result_ge</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">(</span><span class="n">region_path</span><span class="o">=</span><span class="n">new_region_path</span><span class="p">,</span>
+</span><span id="L-160"><a href="#L-160"><span class="linenos">160</span></a>        <span class="n">result_ge</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">(</span><span class="n">region_file_path</span><span class="o">=</span><span class="n">new_region_file_path</span><span class="p">,</span>
 </span><span id="L-161"><a href="#L-161"><span class="linenos">161</span></a>                                   <span class="n">region_file_type</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">region_file_type</span><span class="p">,</span>
 </span><span id="L-162"><a href="#L-162"><span class="linenos">162</span></a>                                   <span class="n">fasta_path</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">fasta_path</span><span class="p">,</span>
 </span><span id="L-163"><a href="#L-163"><span class="linenos">163</span></a>                                   <span class="p">)</span>
 </span><span id="L-164"><a href="#L-164"><span class="linenos">164</span></a>        
 </span><span id="L-165"><a href="#L-165"><span class="linenos">165</span></a>        <span class="n">new_bt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_region_bed_table</span><span class="p">()</span><span class="o">.</span><span class="n">apply_logical_filter</span><span class="p">(</span><span class="n">logical</span><span class="p">)</span>
-</span><span id="L-166"><a href="#L-166"><span class="linenos">166</span></a>        <span class="n">new_bt</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">new_region_path</span><span class="p">)</span>
+</span><span id="L-166"><a href="#L-166"><span class="linenos">166</span></a>        <span class="n">new_bt</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">new_region_file_path</span><span class="p">)</span>
 </span><span id="L-167"><a href="#L-167"><span class="linenos">167</span></a>
 </span><span id="L-168"><a href="#L-168"><span class="linenos">168</span></a>        <span class="k">for</span> <span class="n">anno_name</span><span class="p">,</span> <span class="n">anno_arr</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_anno_arr_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
 </span><span id="L-169"><a href="#L-169"><span class="linenos">169</span></a>            <span class="n">new_anno_arr</span> <span class="o">=</span> <span class="n">anno_arr</span><span class="p">[</span><span class="n">logical</span><span class="p">]</span>
@@ -291,17 +291,17 @@ RGTools<wbr>.GenomicElements    </h1>
 </span><span id="GenomicElements-14"><a href="#GenomicElements-14"><span class="linenos"> 14</span></a><span class="sd">    Class for Genomics elements.</span>
 </span><span id="GenomicElements-15"><a href="#GenomicElements-15"><span class="linenos"> 15</span></a><span class="sd">    &#39;&#39;&#39;</span>
 </span><span id="GenomicElements-16"><a href="#GenomicElements-16"><span class="linenos"> 16</span></a>
-</span><span id="GenomicElements-17"><a href="#GenomicElements-17"><span class="linenos"> 17</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">region_path</span><span class="p">,</span> <span class="n">region_file_type</span><span class="p">,</span> <span class="n">fasta_path</span><span class="p">):</span>
+</span><span id="GenomicElements-17"><a href="#GenomicElements-17"><span class="linenos"> 17</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">region_file_path</span><span class="p">,</span> <span class="n">region_file_type</span><span class="p">,</span> <span class="n">fasta_path</span><span class="p">):</span>
 </span><span id="GenomicElements-18"><a href="#GenomicElements-18"><span class="linenos"> 18</span></a><span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 </span><span id="GenomicElements-19"><a href="#GenomicElements-19"><span class="linenos"> 19</span></a><span class="sd">        Constructor for GenomicElements class.</span>
 </span><span id="GenomicElements-20"><a href="#GenomicElements-20"><span class="linenos"> 20</span></a>
 </span><span id="GenomicElements-21"><a href="#GenomicElements-21"><span class="linenos"> 21</span></a><span class="sd">        Keyword arguments:</span>
-</span><span id="GenomicElements-22"><a href="#GenomicElements-22"><span class="linenos"> 22</span></a><span class="sd">        - region_path: Path to the region file.</span>
+</span><span id="GenomicElements-22"><a href="#GenomicElements-22"><span class="linenos"> 22</span></a><span class="sd">        - region_file_path: Path to the region file.</span>
 </span><span id="GenomicElements-23"><a href="#GenomicElements-23"><span class="linenos"> 23</span></a><span class="sd">        - region_file_type: Type of the region file (see GenomicElements.get_region_file_suffix2class_dict).</span>
 </span><span id="GenomicElements-24"><a href="#GenomicElements-24"><span class="linenos"> 24</span></a><span class="sd">        - fasta_path: Path to the genome file.</span>
 </span><span id="GenomicElements-25"><a href="#GenomicElements-25"><span class="linenos"> 25</span></a><span class="sd">        &#39;&#39;&#39;</span>
 </span><span id="GenomicElements-26"><a href="#GenomicElements-26"><span class="linenos"> 26</span></a>        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
-</span><span id="GenomicElements-27"><a href="#GenomicElements-27"><span class="linenos"> 27</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">region_path</span> <span class="o">=</span> <span class="n">region_path</span>
+</span><span id="GenomicElements-27"><a href="#GenomicElements-27"><span class="linenos"> 27</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">region_file_path</span> <span class="o">=</span> <span class="n">region_file_path</span>
 </span><span id="GenomicElements-28"><a href="#GenomicElements-28"><span class="linenos"> 28</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_region_file_type</span> <span class="o">=</span> <span class="n">region_file_type</span>
 </span><span id="GenomicElements-29"><a href="#GenomicElements-29"><span class="linenos"> 29</span></a>        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_region_file_type</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_region_file_suffix2class_dict</span><span class="p">()</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
 </span><span id="GenomicElements-30"><a href="#GenomicElements-30"><span class="linenos"> 30</span></a>            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid region file type: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_region_file_type</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
@@ -402,7 +402,7 @@ RGTools<wbr>.GenomicElements    </h1>
 </span><span id="GenomicElements-125"><a href="#GenomicElements-125"><span class="linenos">125</span></a><span class="sd">        Return a bed table object for the region file.</span>
 </span><span id="GenomicElements-126"><a href="#GenomicElements-126"><span class="linenos">126</span></a><span class="sd">        &#39;&#39;&#39;</span>
 </span><span id="GenomicElements-127"><a href="#GenomicElements-127"><span class="linenos">127</span></a>        <span class="n">bt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_region_file_suffix2class_dict</span><span class="p">()[</span><span class="bp">self</span><span class="o">.</span><span class="n">region_file_type</span><span class="p">](</span><span class="n">enable_sort</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-</span><span id="GenomicElements-128"><a href="#GenomicElements-128"><span class="linenos">128</span></a>        <span class="n">bt</span><span class="o">.</span><span class="n">load_from_file</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">region_path</span><span class="p">)</span>
+</span><span id="GenomicElements-128"><a href="#GenomicElements-128"><span class="linenos">128</span></a>        <span class="n">bt</span><span class="o">.</span><span class="n">load_from_file</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">region_file_path</span><span class="p">)</span>
 </span><span id="GenomicElements-129"><a href="#GenomicElements-129"><span class="linenos">129</span></a>
 </span><span id="GenomicElements-130"><a href="#GenomicElements-130"><span class="linenos">130</span></a>        <span class="k">return</span> <span class="n">bt</span>
 </span><span id="GenomicElements-131"><a href="#GenomicElements-131"><span class="linenos">131</span></a>    
@@ -425,24 +425,24 @@ RGTools<wbr>.GenomicElements    </h1>
 </span><span id="GenomicElements-148"><a href="#GenomicElements-148"><span class="linenos">148</span></a>                    <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">record</span><span class="o">.</span><span class="n">seq</span><span class="p">[</span><span class="n">start</span><span class="p">:</span><span class="n">end</span><span class="p">])</span>  <span class="c1"># Convert to 0-based index</span>
 </span><span id="GenomicElements-149"><a href="#GenomicElements-149"><span class="linenos">149</span></a>        <span class="k">return</span> <span class="kc">None</span>
 </span><span id="GenomicElements-150"><a href="#GenomicElements-150"><span class="linenos">150</span></a>
-</span><span id="GenomicElements-151"><a href="#GenomicElements-151"><span class="linenos">151</span></a>    <span class="k">def</span> <span class="nf">apply_logical_filter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">logical</span><span class="p">,</span> <span class="n">new_region_path</span><span class="p">):</span>
+</span><span id="GenomicElements-151"><a href="#GenomicElements-151"><span class="linenos">151</span></a>    <span class="k">def</span> <span class="nf">apply_logical_filter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">logical</span><span class="p">,</span> <span class="n">new_region_file_path</span><span class="p">):</span>
 </span><span id="GenomicElements-152"><a href="#GenomicElements-152"><span class="linenos">152</span></a><span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 </span><span id="GenomicElements-153"><a href="#GenomicElements-153"><span class="linenos">153</span></a><span class="sd">        Apply logical filter to the regions.</span>
 </span><span id="GenomicElements-154"><a href="#GenomicElements-154"><span class="linenos">154</span></a>
 </span><span id="GenomicElements-155"><a href="#GenomicElements-155"><span class="linenos">155</span></a><span class="sd">        Keyword arguments:</span>
 </span><span id="GenomicElements-156"><a href="#GenomicElements-156"><span class="linenos">156</span></a><span class="sd">        - logical: np.Array, Logical array to filter the regions.</span>
-</span><span id="GenomicElements-157"><a href="#GenomicElements-157"><span class="linenos">157</span></a><span class="sd">        - new_region_path: Path to save the new region_file for filtered regions.</span>
+</span><span id="GenomicElements-157"><a href="#GenomicElements-157"><span class="linenos">157</span></a><span class="sd">        - new_region_file_path: Path to save the new region_file for filtered regions.</span>
 </span><span id="GenomicElements-158"><a href="#GenomicElements-158"><span class="linenos">158</span></a>
 </span><span id="GenomicElements-159"><a href="#GenomicElements-159"><span class="linenos">159</span></a><span class="sd">        Returns:</span>
 </span><span id="GenomicElements-160"><a href="#GenomicElements-160"><span class="linenos">160</span></a><span class="sd">        - a new GenomicElements object with the filtered regions.</span>
 </span><span id="GenomicElements-161"><a href="#GenomicElements-161"><span class="linenos">161</span></a><span class="sd">        &#39;&#39;&#39;</span>
-</span><span id="GenomicElements-162"><a href="#GenomicElements-162"><span class="linenos">162</span></a>        <span class="n">result_ge</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">(</span><span class="n">region_path</span><span class="o">=</span><span class="n">new_region_path</span><span class="p">,</span>
+</span><span id="GenomicElements-162"><a href="#GenomicElements-162"><span class="linenos">162</span></a>        <span class="n">result_ge</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">(</span><span class="n">region_file_path</span><span class="o">=</span><span class="n">new_region_file_path</span><span class="p">,</span>
 </span><span id="GenomicElements-163"><a href="#GenomicElements-163"><span class="linenos">163</span></a>                                   <span class="n">region_file_type</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">region_file_type</span><span class="p">,</span>
 </span><span id="GenomicElements-164"><a href="#GenomicElements-164"><span class="linenos">164</span></a>                                   <span class="n">fasta_path</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">fasta_path</span><span class="p">,</span>
 </span><span id="GenomicElements-165"><a href="#GenomicElements-165"><span class="linenos">165</span></a>                                   <span class="p">)</span>
 </span><span id="GenomicElements-166"><a href="#GenomicElements-166"><span class="linenos">166</span></a>        
 </span><span id="GenomicElements-167"><a href="#GenomicElements-167"><span class="linenos">167</span></a>        <span class="n">new_bt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_region_bed_table</span><span class="p">()</span><span class="o">.</span><span class="n">apply_logical_filter</span><span class="p">(</span><span class="n">logical</span><span class="p">)</span>
-</span><span id="GenomicElements-168"><a href="#GenomicElements-168"><span class="linenos">168</span></a>        <span class="n">new_bt</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">new_region_path</span><span class="p">)</span>
+</span><span id="GenomicElements-168"><a href="#GenomicElements-168"><span class="linenos">168</span></a>        <span class="n">new_bt</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">new_region_file_path</span><span class="p">)</span>
 </span><span id="GenomicElements-169"><a href="#GenomicElements-169"><span class="linenos">169</span></a>
 </span><span id="GenomicElements-170"><a href="#GenomicElements-170"><span class="linenos">170</span></a>        <span class="k">for</span> <span class="n">anno_name</span><span class="p">,</span> <span class="n">anno_arr</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_anno_arr_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
 </span><span id="GenomicElements-171"><a href="#GenomicElements-171"><span class="linenos">171</span></a>            <span class="n">new_anno_arr</span> <span class="o">=</span> <span class="n">anno_arr</span><span class="p">[</span><span class="n">logical</span><span class="p">]</span>
@@ -460,23 +460,23 @@ RGTools<wbr>.GenomicElements    </h1>
                                         <input id="GenomicElements.__init__-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
 <div class="attr function">
             
-        <span class="name">GenomicElements</span><span class="signature pdoc-code condensed">(<span class="param"><span class="n">region_path</span>, </span><span class="param"><span class="n">region_file_type</span>, </span><span class="param"><span class="n">fasta_path</span></span>)</span>
+        <span class="name">GenomicElements</span><span class="signature pdoc-code condensed">(<span class="param"><span class="n">region_file_path</span>, </span><span class="param"><span class="n">region_file_type</span>, </span><span class="param"><span class="n">fasta_path</span></span>)</span>
 
                 <label class="view-source-button" for="GenomicElements.__init__-view-source"><span>View Source</span></label>
 
     </div>
     <a class="headerlink" href="#GenomicElements.__init__"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="GenomicElements.__init__-17"><a href="#GenomicElements.__init__-17"><span class="linenos">17</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">region_path</span><span class="p">,</span> <span class="n">region_file_type</span><span class="p">,</span> <span class="n">fasta_path</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="GenomicElements.__init__-17"><a href="#GenomicElements.__init__-17"><span class="linenos">17</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">region_file_path</span><span class="p">,</span> <span class="n">region_file_type</span><span class="p">,</span> <span class="n">fasta_path</span><span class="p">):</span>
 </span><span id="GenomicElements.__init__-18"><a href="#GenomicElements.__init__-18"><span class="linenos">18</span></a><span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 </span><span id="GenomicElements.__init__-19"><a href="#GenomicElements.__init__-19"><span class="linenos">19</span></a><span class="sd">        Constructor for GenomicElements class.</span>
 </span><span id="GenomicElements.__init__-20"><a href="#GenomicElements.__init__-20"><span class="linenos">20</span></a>
 </span><span id="GenomicElements.__init__-21"><a href="#GenomicElements.__init__-21"><span class="linenos">21</span></a><span class="sd">        Keyword arguments:</span>
-</span><span id="GenomicElements.__init__-22"><a href="#GenomicElements.__init__-22"><span class="linenos">22</span></a><span class="sd">        - region_path: Path to the region file.</span>
+</span><span id="GenomicElements.__init__-22"><a href="#GenomicElements.__init__-22"><span class="linenos">22</span></a><span class="sd">        - region_file_path: Path to the region file.</span>
 </span><span id="GenomicElements.__init__-23"><a href="#GenomicElements.__init__-23"><span class="linenos">23</span></a><span class="sd">        - region_file_type: Type of the region file (see GenomicElements.get_region_file_suffix2class_dict).</span>
 </span><span id="GenomicElements.__init__-24"><a href="#GenomicElements.__init__-24"><span class="linenos">24</span></a><span class="sd">        - fasta_path: Path to the genome file.</span>
 </span><span id="GenomicElements.__init__-25"><a href="#GenomicElements.__init__-25"><span class="linenos">25</span></a><span class="sd">        &#39;&#39;&#39;</span>
 </span><span id="GenomicElements.__init__-26"><a href="#GenomicElements.__init__-26"><span class="linenos">26</span></a>        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
-</span><span id="GenomicElements.__init__-27"><a href="#GenomicElements.__init__-27"><span class="linenos">27</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">region_path</span> <span class="o">=</span> <span class="n">region_path</span>
+</span><span id="GenomicElements.__init__-27"><a href="#GenomicElements.__init__-27"><span class="linenos">27</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">region_file_path</span> <span class="o">=</span> <span class="n">region_file_path</span>
 </span><span id="GenomicElements.__init__-28"><a href="#GenomicElements.__init__-28"><span class="linenos">28</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_region_file_type</span> <span class="o">=</span> <span class="n">region_file_type</span>
 </span><span id="GenomicElements.__init__-29"><a href="#GenomicElements.__init__-29"><span class="linenos">29</span></a>        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_region_file_type</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_region_file_suffix2class_dict</span><span class="p">()</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
 </span><span id="GenomicElements.__init__-30"><a href="#GenomicElements.__init__-30"><span class="linenos">30</span></a>            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid region file type: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_region_file_type</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
@@ -490,7 +490,7 @@ RGTools<wbr>.GenomicElements    </h1>
 <p>Keyword arguments:</p>
 
 <ul>
-<li>region_path: Path to the region file.</li>
+<li>region_file_path: Path to the region file.</li>
 <li>region_file_type: Type of the region file (see <a href="#GenomicElements.get_region_file_suffix2class_dict">GenomicElements.get_region_file_suffix2class_dict</a>).</li>
 <li>fasta_path: Path to the genome file.</li>
 </ul>
@@ -498,13 +498,13 @@ RGTools<wbr>.GenomicElements    </h1>
 
 
                             </div>
-                            <div id="GenomicElements.region_path" class="classattr">
+                            <div id="GenomicElements.region_file_path" class="classattr">
                                 <div class="attr variable">
-            <span class="name">region_path</span>
+            <span class="name">region_file_path</span>
 
         
     </div>
-    <a class="headerlink" href="#GenomicElements.region_path"></a>
+    <a class="headerlink" href="#GenomicElements.region_file_path"></a>
     
     
 
@@ -771,7 +771,7 @@ that can load bed3gene annotations.</p>
 </span><span id="GenomicElements.get_region_bed_table-125"><a href="#GenomicElements.get_region_bed_table-125"><span class="linenos">125</span></a><span class="sd">        Return a bed table object for the region file.</span>
 </span><span id="GenomicElements.get_region_bed_table-126"><a href="#GenomicElements.get_region_bed_table-126"><span class="linenos">126</span></a><span class="sd">        &#39;&#39;&#39;</span>
 </span><span id="GenomicElements.get_region_bed_table-127"><a href="#GenomicElements.get_region_bed_table-127"><span class="linenos">127</span></a>        <span class="n">bt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_region_file_suffix2class_dict</span><span class="p">()[</span><span class="bp">self</span><span class="o">.</span><span class="n">region_file_type</span><span class="p">](</span><span class="n">enable_sort</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-</span><span id="GenomicElements.get_region_bed_table-128"><a href="#GenomicElements.get_region_bed_table-128"><span class="linenos">128</span></a>        <span class="n">bt</span><span class="o">.</span><span class="n">load_from_file</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">region_path</span><span class="p">)</span>
+</span><span id="GenomicElements.get_region_bed_table-128"><a href="#GenomicElements.get_region_bed_table-128"><span class="linenos">128</span></a>        <span class="n">bt</span><span class="o">.</span><span class="n">load_from_file</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">region_file_path</span><span class="p">)</span>
 </span><span id="GenomicElements.get_region_bed_table-129"><a href="#GenomicElements.get_region_bed_table-129"><span class="linenos">129</span></a>
 </span><span id="GenomicElements.get_region_bed_table-130"><a href="#GenomicElements.get_region_bed_table-130"><span class="linenos">130</span></a>        <span class="k">return</span> <span class="n">bt</span>
 </span></pre></div>
@@ -839,30 +839,30 @@ The coordinates are of bed convention.</p>
 <div class="attr function">
             
         <span class="def">def</span>
-        <span class="name">apply_logical_filter</span><span class="signature pdoc-code condensed">(<span class="param"><span class="bp">self</span>, </span><span class="param"><span class="n">logical</span>, </span><span class="param"><span class="n">new_region_path</span></span><span class="return-annotation">):</span></span>
+        <span class="name">apply_logical_filter</span><span class="signature pdoc-code condensed">(<span class="param"><span class="bp">self</span>, </span><span class="param"><span class="n">logical</span>, </span><span class="param"><span class="n">new_region_file_path</span></span><span class="return-annotation">):</span></span>
 
                 <label class="view-source-button" for="GenomicElements.apply_logical_filter-view-source"><span>View Source</span></label>
 
     </div>
     <a class="headerlink" href="#GenomicElements.apply_logical_filter"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="GenomicElements.apply_logical_filter-151"><a href="#GenomicElements.apply_logical_filter-151"><span class="linenos">151</span></a>    <span class="k">def</span> <span class="nf">apply_logical_filter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">logical</span><span class="p">,</span> <span class="n">new_region_path</span><span class="p">):</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="GenomicElements.apply_logical_filter-151"><a href="#GenomicElements.apply_logical_filter-151"><span class="linenos">151</span></a>    <span class="k">def</span> <span class="nf">apply_logical_filter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">logical</span><span class="p">,</span> <span class="n">new_region_file_path</span><span class="p">):</span>
 </span><span id="GenomicElements.apply_logical_filter-152"><a href="#GenomicElements.apply_logical_filter-152"><span class="linenos">152</span></a><span class="w">        </span><span class="sd">&#39;&#39;&#39;</span>
 </span><span id="GenomicElements.apply_logical_filter-153"><a href="#GenomicElements.apply_logical_filter-153"><span class="linenos">153</span></a><span class="sd">        Apply logical filter to the regions.</span>
 </span><span id="GenomicElements.apply_logical_filter-154"><a href="#GenomicElements.apply_logical_filter-154"><span class="linenos">154</span></a>
 </span><span id="GenomicElements.apply_logical_filter-155"><a href="#GenomicElements.apply_logical_filter-155"><span class="linenos">155</span></a><span class="sd">        Keyword arguments:</span>
 </span><span id="GenomicElements.apply_logical_filter-156"><a href="#GenomicElements.apply_logical_filter-156"><span class="linenos">156</span></a><span class="sd">        - logical: np.Array, Logical array to filter the regions.</span>
-</span><span id="GenomicElements.apply_logical_filter-157"><a href="#GenomicElements.apply_logical_filter-157"><span class="linenos">157</span></a><span class="sd">        - new_region_path: Path to save the new region_file for filtered regions.</span>
+</span><span id="GenomicElements.apply_logical_filter-157"><a href="#GenomicElements.apply_logical_filter-157"><span class="linenos">157</span></a><span class="sd">        - new_region_file_path: Path to save the new region_file for filtered regions.</span>
 </span><span id="GenomicElements.apply_logical_filter-158"><a href="#GenomicElements.apply_logical_filter-158"><span class="linenos">158</span></a>
 </span><span id="GenomicElements.apply_logical_filter-159"><a href="#GenomicElements.apply_logical_filter-159"><span class="linenos">159</span></a><span class="sd">        Returns:</span>
 </span><span id="GenomicElements.apply_logical_filter-160"><a href="#GenomicElements.apply_logical_filter-160"><span class="linenos">160</span></a><span class="sd">        - a new GenomicElements object with the filtered regions.</span>
 </span><span id="GenomicElements.apply_logical_filter-161"><a href="#GenomicElements.apply_logical_filter-161"><span class="linenos">161</span></a><span class="sd">        &#39;&#39;&#39;</span>
-</span><span id="GenomicElements.apply_logical_filter-162"><a href="#GenomicElements.apply_logical_filter-162"><span class="linenos">162</span></a>        <span class="n">result_ge</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">(</span><span class="n">region_path</span><span class="o">=</span><span class="n">new_region_path</span><span class="p">,</span>
+</span><span id="GenomicElements.apply_logical_filter-162"><a href="#GenomicElements.apply_logical_filter-162"><span class="linenos">162</span></a>        <span class="n">result_ge</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">(</span><span class="n">region_file_path</span><span class="o">=</span><span class="n">new_region_file_path</span><span class="p">,</span>
 </span><span id="GenomicElements.apply_logical_filter-163"><a href="#GenomicElements.apply_logical_filter-163"><span class="linenos">163</span></a>                                   <span class="n">region_file_type</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">region_file_type</span><span class="p">,</span>
 </span><span id="GenomicElements.apply_logical_filter-164"><a href="#GenomicElements.apply_logical_filter-164"><span class="linenos">164</span></a>                                   <span class="n">fasta_path</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">fasta_path</span><span class="p">,</span>
 </span><span id="GenomicElements.apply_logical_filter-165"><a href="#GenomicElements.apply_logical_filter-165"><span class="linenos">165</span></a>                                   <span class="p">)</span>
 </span><span id="GenomicElements.apply_logical_filter-166"><a href="#GenomicElements.apply_logical_filter-166"><span class="linenos">166</span></a>        
 </span><span id="GenomicElements.apply_logical_filter-167"><a href="#GenomicElements.apply_logical_filter-167"><span class="linenos">167</span></a>        <span class="n">new_bt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_region_bed_table</span><span class="p">()</span><span class="o">.</span><span class="n">apply_logical_filter</span><span class="p">(</span><span class="n">logical</span><span class="p">)</span>
-</span><span id="GenomicElements.apply_logical_filter-168"><a href="#GenomicElements.apply_logical_filter-168"><span class="linenos">168</span></a>        <span class="n">new_bt</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">new_region_path</span><span class="p">)</span>
+</span><span id="GenomicElements.apply_logical_filter-168"><a href="#GenomicElements.apply_logical_filter-168"><span class="linenos">168</span></a>        <span class="n">new_bt</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">new_region_file_path</span><span class="p">)</span>
 </span><span id="GenomicElements.apply_logical_filter-169"><a href="#GenomicElements.apply_logical_filter-169"><span class="linenos">169</span></a>
 </span><span id="GenomicElements.apply_logical_filter-170"><a href="#GenomicElements.apply_logical_filter-170"><span class="linenos">170</span></a>        <span class="k">for</span> <span class="n">anno_name</span><span class="p">,</span> <span class="n">anno_arr</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_anno_arr_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
 </span><span id="GenomicElements.apply_logical_filter-171"><a href="#GenomicElements.apply_logical_filter-171"><span class="linenos">171</span></a>            <span class="n">new_anno_arr</span> <span class="o">=</span> <span class="n">anno_arr</span><span class="p">[</span><span class="n">logical</span><span class="p">]</span>
@@ -878,7 +878,7 @@ The coordinates are of bed convention.</p>
 
 <ul>
 <li>logical: np.Array, Logical array to filter the regions.</li>
-<li>new_region_path: Path to save the new region_file for filtered regions.</li>
+<li>new_region_file_path: Path to save the new region_file for filtered regions.</li>
 </ul>
 
 <p>Returns:</p>
