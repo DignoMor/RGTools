@@ -19,9 +19,9 @@ class TestGenomicElements(unittest.TestCase):
             os.makedirs(self.__wdir)
 
         self.__hg38_genome_path = "RGTools/large_files/hg38.fa"
-        self.__bed3_region_path = os.path.join(self.__wdir, "test.bed3")
+        self.__bed3_region_file_path = os.path.join(self.__wdir, "test.bed3")
 
-        TestBedTable3._gen_test_bed_file(self.__bed3_region_path)
+        TestBedTable3._gen_test_bed_file(self.__bed3_region_file_path)
 
         return super().setUp()
     
@@ -31,10 +31,10 @@ class TestGenomicElements(unittest.TestCase):
         return super().tearDown()
 
     def _init_GenomicElements(self):
-        region_path = self.__bed3_region_path
         region_file_type = "bed3"
+        region_file_path = self.__bed3_region_file_path
         genome_path = self.__hg38_genome_path
-        return GenomicElements(region_path, region_file_type, genome_path)
+        return GenomicElements(region_file_path, region_file_type, genome_path)
 
     def test_one_hot_encoding(self):
         encoding = GenomicElements.one_hot_encoding("ACGT")
@@ -65,7 +65,7 @@ class TestGenomicElements(unittest.TestCase):
         self.assertIsNone(nonexist_seq)
     
     def test_get_all_region_seqs(self):
-        region_path = os.path.join(self.__wdir, "get_region_seq_test.bed3")
+        region_file_path = os.path.join(self.__wdir, "get_region_seq_test.bed3")
         region_file_type = "bed3"
         region_bt = BedTable3()
         region_bt.load_from_dataframe(pd.DataFrame({
@@ -73,9 +73,9 @@ class TestGenomicElements(unittest.TestCase):
             "start": [123400, 124400],
             "end": [123500, 124500], 
         }))
-        region_bt.write(region_path)
+        region_bt.write(region_file_path)
 
-        ge = GenomicElements(region_path, 
+        ge = GenomicElements(region_file_path, 
                              region_file_type, 
                              self.__hg38_genome_path, 
                              )
@@ -85,7 +85,7 @@ class TestGenomicElements(unittest.TestCase):
         self.assertEqual(region_seq_list[0][:12], "GTGTAATTACAA")
 
     def test_get_all_region_one_hot(self):
-        region_path = os.path.join(self.__wdir, "one_hot_test.bed3")
+        region_file_path = os.path.join(self.__wdir, "one_hot_test.bed3")
         region_file_type = "bed3"
         region_bt = BedTable3()
         region_bt.load_from_dataframe(pd.DataFrame({
@@ -93,9 +93,9 @@ class TestGenomicElements(unittest.TestCase):
             "start": [123400, 124400],
             "end": [123500, 124500], 
         }))
-        region_bt.write(region_path)
+        region_bt.write(region_file_path)
 
-        ge = GenomicElements(region_path, 
+        ge = GenomicElements(region_file_path, 
                              region_file_type, 
                              self.__hg38_genome_path, 
                              )
@@ -151,8 +151,8 @@ class TestGenomicElements(unittest.TestCase):
 
         logical = np.array([True, False, True, False])
 
-        new_region_path = os.path.join(self.__wdir, "new_region.bed3")
-        new_ge = ge.apply_logical_filter(logical, new_region_path)
+        new_region_file_path = os.path.join(self.__wdir, "new_region.bed3")
+        new_ge = ge.apply_logical_filter(logical, new_region_file_path)
 
         self.assertEqual(new_ge.get_num_regions(), 2)
         self.assertEqual(new_ge.get_anno_dim(anno_name), 1)

@@ -13,17 +13,17 @@ class GenomicElements(GeneralElements):
     Class for Genomics elements.
     '''
 
-    def __init__(self, region_path, region_file_type, fasta_path):
+    def __init__(self, region_file_path, region_file_type, fasta_path):
         '''
         Constructor for GenomicElements class.
 
         Keyword arguments:
-        - region_path: Path to the region file.
+        - region_file_path: Path to the region file.
         - region_file_type: Type of the region file (see GenomicElements.get_region_file_suffix2class_dict).
         - fasta_path: Path to the genome file.
         '''
         super().__init__()
-        self.region_path = region_path
+        self.region_file_path = region_file_path
         self._region_file_type = region_file_type
         if not self._region_file_type in self.get_region_file_suffix2class_dict().keys():
             raise ValueError(f"Invalid region file type: {self._region_file_type}")
@@ -124,7 +124,7 @@ class GenomicElements(GeneralElements):
         Return a bed table object for the region file.
         '''
         bt = self.get_region_file_suffix2class_dict()[self.region_file_type](enable_sort=False)
-        bt.load_from_file(self.region_path)
+        bt.load_from_file(self.region_file_path)
 
         return bt
     
@@ -147,24 +147,24 @@ class GenomicElements(GeneralElements):
                     return str(record.seq[start:end])  # Convert to 0-based index
         return None
 
-    def apply_logical_filter(self, logical, new_region_path):
+    def apply_logical_filter(self, logical, new_region_file_path):
         '''
         Apply logical filter to the regions.
 
         Keyword arguments:
         - logical: np.Array, Logical array to filter the regions.
-        - new_region_path: Path to save the new region_file for filtered regions.
+        - new_region_file_path: Path to save the new region_file for filtered regions.
 
         Returns:
         - a new GenomicElements object with the filtered regions.
         '''
-        result_ge = self.__class__(region_path=new_region_path,
+        result_ge = self.__class__(region_file_path=new_region_file_path,
                                    region_file_type=self.region_file_type,
                                    fasta_path=self.fasta_path,
                                    )
         
         new_bt = self.get_region_bed_table().apply_logical_filter(logical)
-        new_bt.write(new_region_path)
+        new_bt.write(new_region_file_path)
 
         for anno_name, anno_arr in self._anno_arr_dict.items():
             new_anno_arr = anno_arr[logical]

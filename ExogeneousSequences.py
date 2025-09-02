@@ -43,8 +43,8 @@ class ExogeneousSequences(GeneralElements):
         return self._region_file_type
 
     @property
-    def region_path(self):
-        raise NotImplementedError("ExogeneousSequences does not use region_path. ")
+    def region_file_path(self):
+        raise NotImplementedError("ExogeneousSequences does not use region_file_path. ")
     
     def get_region_bed_table(self):
         '''

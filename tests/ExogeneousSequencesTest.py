@@ -32,7 +32,7 @@ class TestExogeneousSequences(unittest.TestCase):
         bt = es.get_region_bed_table()
         bt.write(os.path.join(self.__wdir, "test.bed3"))
 
-        ge = GenomicElements(region_path=os.path.join(self.__wdir, "test.bed3"),
+        ge = GenomicElements(region_file_path=os.path.join(self.__wdir, "test.bed3"),
                              region_file_type="bed3", 
                              fasta_path=self.__fasta_path, 
                              )
