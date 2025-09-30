@@ -17,12 +17,6 @@ class BaseBwTrack(ABC):
         - chrom: chromosome
         - start: start position
         - end: end position
-        - strand: strandness, "+" or "-" or ".". For SingleBwTrack, this parameter is ignored.
-        - output_type: what information is outputted (see get_supported_quantification_type)
-        - l_pad: left padding
-        - r_pad: right padding
-        - min_len_after_padding: minimum length of the region after padding
-        - method_resolving_invalid_padding: method to resolve invalid padding
         '''
         pass
 
@@ -85,11 +79,12 @@ class SingleBwTrack(BaseBwTrack):
         '''
         self.bw.close()
 
-    def count_single_region(self, chrom, start, end, strand, 
-                          output_type="raw_count", 
-                          l_pad=0, r_pad=0, 
-                          min_len_after_padding=50,
-                          method_resolving_invalid_padding="raise"):
+    def count_single_region(self, chrom, start, end, 
+                            output_type="raw_count", 
+                            l_pad=0, r_pad=0, 
+                            min_len_after_padding=50,
+                            method_resolving_invalid_padding="raise", 
+                            **kwargs):
         '''
         Count the reads in a single region.
         Return the counts.
@@ -135,10 +130,11 @@ class PairedBwTrack(BaseBwTrack):
         self.bw_mn.close()
 
     def count_single_region(self, chrom, start, end, strand, 
-                          output_type="raw_count", 
-                          l_pad=0, r_pad=0, 
-                          min_len_after_padding=50,
-                          method_resolving_invalid_padding="raise"):
+                            output_type="raw_count", 
+                            l_pad=0, r_pad=0, 
+                            min_len_after_padding=50,
+                            method_resolving_invalid_padding="raise", 
+                            **kwargs):
         '''
         Count the reads in a single region.
         Return the counts.
