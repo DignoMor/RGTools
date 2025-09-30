@@ -93,7 +93,6 @@ class SingleBwTrack(BaseBwTrack):
         - chrom: chromosome
         - start: start position
         - end: end position
-        - strand: strandness, "+" or "-" or ".". For SingleBwTrack, this parameter is ignored.
         - output_type: what information is outputted (see get_supported_quantification_type)
         - l_pad: left padding
         - r_pad: right padding
@@ -155,17 +154,22 @@ class PairedBwTrack(BaseBwTrack):
         if start is None:  # Padding was invalid and method was "drop"
             return np.nan
 
-        if strand == "+":
-            signal = np.nan_to_num(self.bw_pl.values(chrom, start, end))
-            return self.quantify_signal(signal, output_type)
-        elif strand == "-":
-            signal = -np.nan_to_num(self.bw_mn.values(chrom, start, end))
-            return self.quantify_signal(signal, output_type)
-        elif strand == ".":
+        if chrom in self.bw_pl.chroms().keys():
             pl_sig = np.nan_to_num(self.bw_pl.values(chrom, start, end))
+        else:
+            pl_sig = np.zeros(end - start)
+
+        if chrom in self.bw_mn.chroms().keys():
             mn_sig = -np.nan_to_num(self.bw_mn.values(chrom, start, end))
             mn_sig = np.flip(mn_sig)
-            
+        else:
+            mn_sig = np.zeros(end - start)
+
+        if strand == "+":
+            return self.quantify_signal(pl_sig, output_type)
+        elif strand == "-":
+            return self.quantify_signal(mn_sig, output_type)
+        elif strand == ".":
             return (self.quantify_signal(pl_sig, output_type) + 
                    self.quantify_signal(mn_sig, output_type))
         else:
