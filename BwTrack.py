@@ -104,7 +104,11 @@ class SingleBwTrack(BaseBwTrack):
         if start is None:  # Padding was invalid and method was "drop"
             return np.nan
 
-        signal = np.nan_to_num(self.bw.values(chrom, start, end))
+        if chrom in self.bw.chroms().keys():
+            signal = np.nan_to_num(self.bw.values(chrom, start, end))
+        else:
+            signal = np.zeros(end - start)
+
         return self.quantify_signal(signal, output_type)
 
 class PairedBwTrack(BaseBwTrack):
