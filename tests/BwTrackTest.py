@@ -85,6 +85,8 @@ class TestPairedBwTrack(unittest.TestCase):
                                              r_pad=0, 
                                              min_len_after_padding=50, 
                                              method_resolving_invalid_padding="raise", 
+                                             negative_mn=False,
+                                             flip_mn=True,
                                              )
         
         self.assertEqual(count, 43)
@@ -98,9 +100,39 @@ class TestPairedBwTrack(unittest.TestCase):
                                              r_pad=0, 
                                              min_len_after_padding=50, 
                                              method_resolving_invalid_padding="raise", 
+                                             negative_mn=False,
+                                             flip_mn=True,
                                              )
         
         self.assertEqual(count, 70 / (1000953 - 1000698) * 1e3)
+
+        count = bw_track.count_single_region("chr1", 
+                                             1000698, 
+                                             1000953, 
+                                             strand="-", 
+                                             output_type="full_track", 
+                                             l_pad=0, 
+                                             r_pad=0, 
+                                             min_len_after_padding=1, 
+                                             method_resolving_invalid_padding="raise", 
+                                             negative_mn=True,
+                                             flip_mn=True,
+                                             )
+        count_no_flip = bw_track.count_single_region("chr1", 
+                                                1000698, 
+                                                1000953, 
+                                                strand="-", 
+                                                output_type="full_track", 
+                                                l_pad=0, 
+                                                r_pad=0, 
+                                                min_len_after_padding=1, 
+                                                method_resolving_invalid_padding="raise", 
+                                                negative_mn=True,
+                                                flip_mn=False,
+                                                )
+
+        self.assertTrue(count[2] == count_no_flip[-3])
+
 
 if __name__ == '__main__':
     unittest.main()

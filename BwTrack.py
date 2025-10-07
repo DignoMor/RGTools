@@ -133,6 +133,8 @@ class PairedBwTrack(BaseBwTrack):
                             l_pad=0, r_pad=0, 
                             min_len_after_padding=50,
                             method_resolving_invalid_padding="raise", 
+                            flip_mn=False,
+                            negative_mn=True,
                             **kwargs):
         '''
         Count the reads in a single region.
@@ -148,6 +150,8 @@ class PairedBwTrack(BaseBwTrack):
         - r_pad: right padding
         - min_len_after_padding: minimum length of the region after padding
         - method_resolving_invalid_padding: method to resolve invalid padding
+        - flip_mn: if to flip the minus strand signal
+        - negative_mn: whether to output the minus strand signal as negative
         '''
         start, end = self._process_padding(chrom, start, end, l_pad, r_pad, 
                                          min_len_after_padding, method_resolving_invalid_padding)
@@ -160,8 +164,13 @@ class PairedBwTrack(BaseBwTrack):
             pl_sig = np.zeros(end - start)
 
         if chrom in self.bw_mn.chroms().keys():
-            mn_sig = -np.nan_to_num(self.bw_mn.values(chrom, start, end))
-            mn_sig = np.flip(mn_sig)
+            mn_sig = np.abs(np.nan_to_num(self.bw_mn.values(chrom, start, end)))
+
+            if negative_mn:
+                mn_sig = -mn_sig
+
+            if flip_mn:
+                mn_sig = np.flip(mn_sig)
         else:
             mn_sig = np.zeros(end - start)
 
