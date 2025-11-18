@@ -48,6 +48,7 @@ class GenomicElements(GeneralElements):
             "bed6": BedTable6,
             "bed6gene": GenomicElements.BedTable6Gene,
             "bed3gene": GenomicElements.BedTable3Gene,
+            "narrowPeak": GenomicElements.BedTableNarrowPeak,
         }
 
     @staticmethod
@@ -74,6 +75,14 @@ class GenomicElements(GeneralElements):
                            )
         return bt
     
+    @staticmethod
+    def BedTableNarrowPeak(enable_sort=True):
+        bt = BedTable6Plus(extra_column_names=["signalValue", "pValue", "qValue", "peak"], 
+                           extra_column_dtype=[float, float, float, int], 
+                           enable_sort=enable_sort,
+                           )
+        return bt
+
     @staticmethod
     def set_parser_genome(parser):
         parser.add_argument("--fasta_path", 
