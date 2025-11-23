@@ -177,6 +177,12 @@ class GeneralElements(abc.ABC):
         None
         '''
         np.save(npy_path, self.get_anno_arr(anno_name))
+    
+    def save_anno_npz(self, anno_name, npz_path):
+        '''
+        Save annotation to a npz file.
+        '''
+        np.savez_compressed(npz_path, self.get_anno_arr(anno_name))
 
     @staticmethod
     def one_hot_encoding(seq: str):
