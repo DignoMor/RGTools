@@ -28,6 +28,9 @@ class GenomicElements(GeneralElements):
         if not self._region_file_type in self.get_region_file_suffix2class_dict().keys():
             raise ValueError(f"Invalid region file type: {self._region_file_type}")
 
+        self._region_bt = self.get_region_file_suffix2class_dict()[self.region_file_type](enable_sort=False)
+        self._region_bt.load_from_file(self.region_file_path)
+
         self._fasta_path = fasta_path
 
     @property
@@ -132,10 +135,7 @@ class GenomicElements(GeneralElements):
         '''
         Return a bed table object for the region file.
         '''
-        bt = self.get_region_file_suffix2class_dict()[self.region_file_type](enable_sort=False)
-        bt.load_from_file(self.region_file_path)
-
-        return bt
+        return self._region_bt.copy()
     
     def get_region_seq(self, chrom: str, start: int, end: int) -> str:
         '''
@@ -167,14 +167,14 @@ class GenomicElements(GeneralElements):
         Returns:
         - a new GenomicElements object with the filtered regions.
         '''
+        result_bt = self.get_region_bed_table().apply_logical_filter(logical)
+        result_bt.write(new_region_file_path)
+
         result_ge = self.__class__(region_file_path=new_region_file_path,
                                    region_file_type=self.region_file_type,
                                    fasta_path=self.fasta_path,
                                    )
         
-        new_bt = self.get_region_bed_table().apply_logical_filter(logical)
-        new_bt.write(new_region_file_path)
-
         for anno_name, anno_arr in self._anno_arr_dict.items():
             new_anno_arr = anno_arr[logical]
             result_ge.load_region_anno_from_arr(anno_name, new_anno_arr)

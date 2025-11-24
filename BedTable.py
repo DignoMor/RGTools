@@ -234,7 +234,7 @@ class BedTable3:
         try:
             self._data_df = pd.DataFrame(df[[column_map[col] for col in self.column_names]].values, 
                                          columns=self.column_names, 
-                                         )
+                                         ).copy()
 
         except ValueError as e:
             raise BedTableLoadException(f"Error loading pd.DataFrame: number of columns does not match.")
@@ -403,6 +403,14 @@ class BedTable3:
 
         return new_bed_table
     
+    def copy(self):
+        '''
+        Return a copy of the bed table.
+        '''
+        new_bed_table = self._clone_empty()
+        new_bed_table.load_from_dataframe(self._data_df)
+        return new_bed_table
+
     def _clone_empty(self):
         '''
         Clone an empty instance.
