@@ -41,14 +41,15 @@ class ListFile:
         if file_path != "-" and file_path != "stdin":
             file_handle.close()
 
-    def get_contents(self):
+    def get_contents(self, dtype="str"):
         '''
         Return the contents of the list file as a list of strings.
 
         Returns:
         - contents: np.array of strings, one per line in the file.
+        - dtype: dtype of the outputted array (default: str).
         '''
-        return np.array(self._contents)
+        return np.array(self._contents, dtype=eval(dtype))
 
     def get_num_lines(self):
         '''
