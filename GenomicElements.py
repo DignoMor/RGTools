@@ -52,6 +52,7 @@ class GenomicElements(GeneralElements):
             "bed6gene": GenomicElements.BedTable6Gene,
             "bed3gene": GenomicElements.BedTable3Gene,
             "narrowPeak": GenomicElements.BedTableNarrowPeak,
+            "TREbed": GenomicElements.BedTableTREBed,
         }
 
     @staticmethod
@@ -82,6 +83,14 @@ class GenomicElements(GeneralElements):
     def BedTableNarrowPeak(enable_sort=True):
         bt = BedTable6Plus(extra_column_names=["signalValue", "pValue", "qValue", "peak"], 
                            extra_column_dtype=[float, float, float, int], 
+                           enable_sort=enable_sort,
+                           )
+        return bt
+
+    @staticmethod
+    def BedTableTREBed(enable_sort=True):
+        bt = BedTable3Plus(extra_column_names=["name", "fwsTSS", "revTSS"], 
+                           extra_column_dtype=[str, int, int], 
                            enable_sort=enable_sort,
                            )
         return bt
