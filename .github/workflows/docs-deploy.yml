@@ -1,0 +1,52 @@
+name: Generate and Deploy Documentation
+
+on:
+  push:
+    branches:
+      - main
+    # Only regenerate docs if Python files change
+    paths:
+      - '*.py'
+      - '.github/workflows/docs-deploy.yml'
+  # Allow manual triggering
+  workflow_dispatch:
+
+jobs:
+  generate-and-deploy:
+    runs-on: ubuntu-latest
+    # Permissions needed to deploy to GitHub Pages
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.10'
+        cache: 'pip'
+
+    - name: Install dependencies
+      run: |
+        pip install -r requirements.txt
+
+    - name: Generate documentation
+      run: |
+        bash ./scripts/generate_docs.sh
+
+    - name: Setup Pages
+      uses: actions/configure-pages@v4
+
+    - name: Upload artifact
+      uses: actions/upload-pages-artifact@v3
+      with:
+        path: './github_pages'
+
+    - name: Deploy to GitHub Pages
+      id: deployment
+      uses: actions/deploy-pages@v4
+
