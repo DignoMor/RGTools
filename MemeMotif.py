@@ -202,16 +202,16 @@ class MemeMotif:
         Returns the background frequency used in the MEME motif file.
 
         Return: 
-        - A dictionary with keys being the alphabet characters and values being their frequencies.
+        - A list of floats representing background frequencies (same order as alphabet).
         '''
         return self.bg_freq
     
-    def set_bg_freq(self, bg_freq: dict):
+    def set_bg_freq(self, bg_freq: list):
         '''
         Sets the background frequency used in the MEME motif file.
 
         Keyword arguments:
-        - bg_freq: A dictionary with keys being the alphabet characters and values being their frequencies.
+        - bg_freq: A list of floats representing background frequencies (same order as alphabet).
         '''
         self.bg_freq = bg_freq
 
@@ -234,7 +234,12 @@ class MemeMotif:
         Return:
         - A 2D numpy array representing the PWM of the given motif.
           The array should have shape (num_positions, num_alphabet_chars).
+        
+        Raises:
+        - KeyError: If motif_name is not found.
         '''
+        if motif_name not in self.motif_info_dict:
+            raise KeyError(f"Motif '{motif_name}' not found. Available motifs: {self.motifs}")
         return self.motif_info_dict[motif_name]["pwm"]
 
     def get_motif_alphabet_length(self, motif_name):
@@ -246,7 +251,12 @@ class MemeMotif:
 
         Return: 
         - An integer representing the length of the alphabet used in the given motif.
+        
+        Raises:
+        - KeyError: If motif_name is not found.
         '''
+        if motif_name not in self.motif_info_dict:
+            raise KeyError(f"Motif '{motif_name}' not found. Available motifs: {self.motifs}")
         return self.motif_info_dict[motif_name]["alphabet_length"]
 
     def get_motif_length(self, motif_name):
@@ -258,7 +268,12 @@ class MemeMotif:
 
         Return:
         - An integer representing the length of the given motif.
+        
+        Raises:
+        - KeyError: If motif_name is not found.
         '''
+        if motif_name not in self.motif_info_dict:
+            raise KeyError(f"Motif '{motif_name}' not found. Available motifs: {self.motifs}")
         return self.motif_info_dict[motif_name]["motif_length"]
 
     def get_motif_num_source_sites(self, motif_name):
@@ -270,7 +285,12 @@ class MemeMotif:
 
         Return: 
         - An integer representing the number of source sites for the given motif.
+        
+        Raises:
+        - KeyError: If motif_name is not found.
         '''
+        if motif_name not in self.motif_info_dict:
+            raise KeyError(f"Motif '{motif_name}' not found. Available motifs: {self.motifs}")
         return self.motif_info_dict[motif_name]["num_source_sites"] 
 
     def get_motif_source_eval(self, motif_name):
@@ -282,7 +302,12 @@ class MemeMotif:
 
         Return: 
         - A float representing the source E-value for the given motif.
+        
+        Raises:
+        - KeyError: If motif_name is not found.
         '''
+        if motif_name not in self.motif_info_dict:
+            raise KeyError(f"Motif '{motif_name}' not found. Available motifs: {self.motifs}")
         return self.motif_info_dict[motif_name]["source_eval"]
     
     def add_motif(self, motif_name: str, motif_info: dict):
@@ -299,12 +324,30 @@ class MemeMotif:
             * source_eval: A float representing the source E-value for the motif.
             * pwm: A 2D numpy array representing the PWM of the motif. The 
             array should have shape (motif_length, alphabet_length).
+            Rows must be normalized (sum to 1.0).
         '''
         self.motifs.append(motif_name)
 
         for info_field in ["alphabet_length", "motif_length", "num_source_sites", "source_eval"]:
             if info_field not in motif_info:
                 raise ValueError(f"The motif info dictionary must contain the key {info_field}.")
+
+        # Validate PWM exists and has correct shape
+        if "pwm" not in motif_info:
+            raise ValueError("The motif info dictionary must contain the key 'pwm'.")
+        
+        pwm = motif_info["pwm"]
+        motif_length = motif_info["motif_length"]
+        alphabet_length = motif_info["alphabet_length"]
+        
+        if pwm.shape != (motif_length, alphabet_length):
+            raise ValueError(f"PWM shape {pwm.shape} does not match declared dimensions "
+                           f"(motif_length={motif_length}, alphabet_length={alphabet_length})")
+        
+        # Validate PWM normalization (rows should sum to ~1.0)
+        row_sums = pwm.sum(axis=1)
+        if not np.allclose(row_sums, 1.0, atol=1e-6):
+            raise ValueError(f"PWM rows must sum to 1.0. Found row sums: {row_sums}")
 
         self.motif_info_dict[motif_name] = motif_info
 
