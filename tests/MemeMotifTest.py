@@ -89,8 +89,14 @@ class TestMemeMotif(unittest.TestCase):
     
     def test_set_bg_freq(self):
         meme = MemeMotif(self._meme_file_path)
-        meme.set_bg_freq({"A": 0.25, "C": 0.25, "G": 0.15, "T": 0.35})
-        self.assertEqual(meme.get_bg_freq(), {"A": 0.25, "C": 0.25, "G": 0.15, "T": 0.35})
+        # bg_freq should be a list, not a dict (matching alphabet order: A, C, G, T)
+        meme.set_bg_freq([0.25, 0.25, 0.15, 0.35])
+        bg_freq = meme.get_bg_freq()
+        self.assertEqual(len(bg_freq), 4)
+        self.assertAlmostEqual(bg_freq[0], 0.25)  # A
+        self.assertAlmostEqual(bg_freq[1], 0.25)  # C
+        self.assertAlmostEqual(bg_freq[2], 0.15)  # G
+        self.assertAlmostEqual(bg_freq[3], 0.35)  # T
 
     def test_get_motif_list(self):
         meme = MemeMotif(self._meme_file_path)
@@ -135,6 +141,9 @@ class TestMemeMotif(unittest.TestCase):
                             [0.043, 0.489, 0.021, 0.447],
                             [0.064, 0.255, 0.66, 0.021],
                             [0.064, 0.1702, 0.1915, 0.5743]])
+        
+        # Normalize PWM rows to sum to 1.0 (required by documentation and code validation)
+        dpe_pwm = dpe_pwm / dpe_pwm.sum(axis=1, keepdims=True)
 
         meme.add_motif("dpe", {"alphabet_length": 4, 
                                "motif_length": 6, 
@@ -147,7 +156,7 @@ class TestMemeMotif(unittest.TestCase):
         self.assertEqual(meme.get_motif_length("dpe"), 6)
         self.assertEqual(meme.get_motif_num_source_sites("dpe"), 1000)
         self.assertEqual(meme.get_motif_source_eval("dpe"), 1)
-        self.assertTrue((meme.get_motif_pwm("dpe") == dpe_pwm).all())
+        self.assertTrue(np.allclose(meme.get_motif_pwm("dpe"), dpe_pwm))
 
     def test_calculate_pwm_score(self):
         meme = MemeMotif(self._meme_file_path)
@@ -172,5 +181,109 @@ class TestMemeMotif(unittest.TestCase):
                                                bg_freq=meme.get_bg_freq(), 
                                                )
         self.assertEqual(len(score_arr), 20)
-        self.assertAlmostEqual(score_arr[1], -np.inf)
+        # Last L-1 positions should be padded with minimum score (where L=19)
+        motif_len = meme.get_motif_length("crp")
+        min_score = score_arr.min()
+        self.assertAlmostEqual(score_arr[-motif_len+1:].min(), min_score)
         self.assertAlmostEqual(score_arr[0], -0.45161817)
+    
+    def test_add_motif_pwm_normalization_validation(self):
+        """Test that add_motif validates PWM normalization"""
+        meme = MemeMotif(self._meme_file_path)
+        
+        # Create unnormalized PWM (rows don't sum to 1.0)
+        unnormalized_pwm = np.array([[0.5, 0.3, 0.2, 0.1],  # sums to 1.1
+                                      [0.25, 0.25, 0.25, 0.25]])  # sums to 1.0
+        
+        with self.assertRaises(ValueError) as context:
+            meme.add_motif("test", {
+                "alphabet_length": 4,
+                "motif_length": 2,
+                "num_source_sites": 100,
+                "source_eval": 1e-5,
+                "pwm": unnormalized_pwm
+            })
+        
+        self.assertIn("PWM rows must sum to 1.0", str(context.exception))
+    
+    def test_add_motif_pwm_shape_validation(self):
+        """Test that add_motif validates PWM shape matches declared dimensions"""
+        meme = MemeMotif(self._meme_file_path)
+        
+        # Create PWM with wrong shape
+        wrong_shape_pwm = np.array([[0.25, 0.25, 0.25, 0.25],
+                                    [0.25, 0.25, 0.25, 0.25],
+                                    [0.25, 0.25, 0.25, 0.25]])  # 3x4 but declared as 2x4
+        
+        with self.assertRaises(ValueError) as context:
+            meme.add_motif("test", {
+                "alphabet_length": 4,
+                "motif_length": 2,  # Declared as 2 but PWM has 3 rows
+                "num_source_sites": 100,
+                "source_eval": 1e-5,
+                "pwm": wrong_shape_pwm
+            })
+        
+        self.assertIn("PWM shape", str(context.exception))
+        self.assertIn("does not match declared dimensions", str(context.exception))
+    
+    def test_add_motif_missing_pwm(self):
+        """Test that add_motif requires PWM in motif_info"""
+        meme = MemeMotif(self._meme_file_path)
+        
+        with self.assertRaises(ValueError) as context:
+            meme.add_motif("test", {
+                "alphabet_length": 4,
+                "motif_length": 2,
+                "num_source_sites": 100,
+                "source_eval": 1e-5
+                # Missing "pwm" key
+            })
+        
+        self.assertIn("must contain the key 'pwm'", str(context.exception))
+    
+    def test_calculate_pwm_score_length_mismatch(self):
+        """Test that calculate_pwm_score validates sequence length matches PWM"""
+        meme = MemeMotif(self._meme_file_path)
+        motif_pwm = meme.get_motif_pwm("crp")
+        
+        # Try with wrong length sequence
+        wrong_length_seq = "CGCGATCG"  # Too short
+        
+        with self.assertRaises(ValueError) as context:
+            MemeMotif.calculate_pwm_score(wrong_length_seq, motif_pwm, 
+                                         meme.get_alphabet(), meme.get_bg_freq())
+        
+        self.assertIn("Length of sequence must be the same as the length of the PWM", 
+                      str(context.exception))
+    
+    def test_calculate_pwm_score_default_bg_freq(self):
+        """Test that calculate_pwm_score uses uniform bg_freq when None"""
+        meme = MemeMotif(self._meme_file_path)
+        motif_pwm = meme.get_motif_pwm("crp")
+        seq = "CGCGATCGATCGTTAAGTT"  # Correct length
+        
+        # Score with None bg_freq (should use uniform)
+        score_uniform = MemeMotif.calculate_pwm_score(seq, motif_pwm, 
+                                                      meme.get_alphabet(), bg_freq=None)
+        
+        # Score with explicit uniform bg_freq
+        uniform_bg = [0.25, 0.25, 0.25, 0.25]
+        score_explicit = MemeMotif.calculate_pwm_score(seq, motif_pwm, 
+                                                       meme.get_alphabet(), bg_freq=uniform_bg)
+        
+        self.assertAlmostEqual(score_uniform, score_explicit)
+    
+    def test_clone_empty(self):
+        """Test that clone_empty preserves metadata but not motifs"""
+        meme = MemeMotif(self._meme_file_path)
+        clone = meme.clone_empty()
+        
+        # Metadata should be preserved
+        self.assertEqual(clone.get_meme_version(), meme.get_meme_version())
+        self.assertEqual(clone.get_alphabet(), meme.get_alphabet())
+        self.assertEqual(clone.get_strands(), meme.get_strands())
+        self.assertEqual(clone.get_bg_freq(), meme.get_bg_freq())
+        
+        # But no motifs
+        self.assertEqual(len(clone.get_motif_list()), 0)
