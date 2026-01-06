@@ -68,11 +68,14 @@ MemeMotif(file_path: str = None)
   - Returns log-odds score (higher = better match)
   - If `bg_freq` is None, uses uniform frequencies
 
-- `search_one_motif(seq: str, motif_alphabet: str, motif_pwm: np.array, bg_freq: list = None, reverse_complement: bool = False) -> np.array`
+- `search_one_motif(seq: str, motif_alphabet: str, motif_pwm: np.array, bg_freq: list = None, strand: bool = False) -> np.array`
   - Search sequence for motif matches
   - Returns array of scores for each position
-  - Array length = sequence length
-  - Positions where motif doesn't fit are set to minimum score
+  - Returned Array length = sequence length
+  - returned array[i] represents matching score of seq[i,i+l]
+  - Positions where motif doesn't fit (at the end) are set to minimum score
+  - strand is one of "+", "-" and "both". When "both" are given, 
+    returned values are the higher score between fwd and rc strand.
 
 ## Important Notes
 
