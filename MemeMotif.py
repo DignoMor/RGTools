@@ -371,7 +371,7 @@ class MemeMotif:
         if not len(seq) == pwm.shape[0]:
             raise ValueError("Length of sequence must be the same as the length of the PWM.")
         
-        if not bg_freq: 
+        if bg_freq is None: 
             bg_freq = np.ones(len(alphabet)) / len(alphabet)
 
         if reverse_complement:
