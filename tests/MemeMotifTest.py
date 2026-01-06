@@ -174,18 +174,72 @@ class TestMemeMotif(unittest.TestCase):
         self.assertAlmostEqual(score, -np.inf)
 
     def test_search_one_motif(self):
+        """Test search_one_motif with default strand='+'"""
         meme = MemeMotif(self._meme_file_path)
         score_arr = MemeMotif.search_one_motif("CGCGATCGATCGTTAAGTTG", 
                                                meme.get_alphabet(), 
                                                meme.get_motif_pwm("crp"), 
                                                bg_freq=meme.get_bg_freq(), 
-                                               )
+                                               strand="+")
         self.assertEqual(len(score_arr), 20)
         # Last L-1 positions should be padded with minimum score (where L=19)
         motif_len = meme.get_motif_length("crp")
         min_score = score_arr.min()
         self.assertAlmostEqual(score_arr[-motif_len+1:].min(), min_score)
         self.assertAlmostEqual(score_arr[0], -0.45161817)
+    
+    def test_search_one_motif_reverse_strand(self):
+        """Test search_one_motif with strand='-'"""
+        meme = MemeMotif(self._meme_file_path)
+        score_arr_rev = MemeMotif.search_one_motif("CGCGATCGATCGTTAAGTTG", 
+                                                   meme.get_alphabet(), 
+                                                   meme.get_motif_pwm("crp"), 
+                                                   bg_freq=meme.get_bg_freq(), 
+                                                   strand="-")
+        # Reverse strand should give different scores than forward
+        score_arr_fwd = MemeMotif.search_one_motif("CGCGATCGATCGTTAAGTTG", 
+                                                   meme.get_alphabet(), 
+                                                   meme.get_motif_pwm("crp"), 
+                                                   bg_freq=meme.get_bg_freq(), 
+                                                   strand="+")
+        # They should be different (unless sequence is palindromic)
+        self.assertFalse(np.allclose(score_arr_rev, score_arr_fwd))
+    
+    def test_search_one_motif_both_strands(self):
+        """Test search_one_motif with strand='both'"""
+        meme = MemeMotif(self._meme_file_path)
+        score_arr_both = MemeMotif.search_one_motif("CGCGATCGATCGTTAAGTTG", 
+                                                    meme.get_alphabet(), 
+                                                    meme.get_motif_pwm("crp"), 
+                                                    bg_freq=meme.get_bg_freq(), 
+                                                    strand="both")
+        score_arr_fwd = MemeMotif.search_one_motif("CGCGATCGATCGTTAAGTTG", 
+                                                   meme.get_alphabet(), 
+                                                   meme.get_motif_pwm("crp"), 
+                                                   bg_freq=meme.get_bg_freq(), 
+                                                   strand="+")
+        score_arr_rev = MemeMotif.search_one_motif("CGCGATCGATCGTTAAGTTG", 
+                                                   meme.get_alphabet(), 
+                                                   meme.get_motif_pwm("crp"), 
+                                                   bg_freq=meme.get_bg_freq(), 
+                                                   strand="-")
+        # Both should be >= max of forward and reverse at each position
+        max_scores = np.maximum(score_arr_fwd, score_arr_rev)
+        np.testing.assert_array_almost_equal(score_arr_both, max_scores, decimal=10)
+    
+    def test_search_one_motif_invalid_strand(self):
+        """Test that search_one_motif validates strand parameter"""
+        meme = MemeMotif(self._meme_file_path)
+        
+        with self.assertRaises(ValueError) as context:
+            MemeMotif.search_one_motif("CGCGATCGATCGTTAAGTTG", 
+                                       meme.get_alphabet(), 
+                                       meme.get_motif_pwm("crp"), 
+                                       bg_freq=meme.get_bg_freq(), 
+                                       strand="invalid")
+        
+        self.assertIn("strand must be one of", str(context.exception))
+        self.assertIn("'+', '-', or 'both'", str(context.exception))
     
     def test_add_motif_pwm_normalization_validation(self):
         """Test that add_motif validates PWM normalization"""

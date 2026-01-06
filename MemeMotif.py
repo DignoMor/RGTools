@@ -387,24 +387,29 @@ class MemeMotif:
         return score
 
     @staticmethod
-    def search_one_motif(seq, motif_alphabet, motif_pwm, bg_freq=None, reverse_complement=False):
+    def search_one_motif(seq, motif_alphabet, motif_pwm, bg_freq=None, strand="+"):
         '''
         Search for a single motif in a sequence.
         Returns array of weighted score based on pwm.
 
         Keyword arguments:
         - seq: sequence to search
+        - motif_alphabet: Alphabet string for the motif
         - motif_pwm: PWM of motif to search for
-        - reverse_complement: whether to reverse complement the sequence while matching for motifs.
+        - bg_freq: background frequencies (default: uniform)
+        - strand: Strand to search. One of "+", "-", or "both".
+                  When "both" is given, returned values are the higher score 
+                  between forward and reverse complement strand.
 
         Returns:
         - output_arr: array of scores for each position in the sequence.
-                      If motif length is odd, then (motif_len - 1) / 2 
-                      min value of the output array will be padded to the result on both ends. 
-                      If the length is even, then motif_len / 2 - 1 values will be
-                      padded to the left and motif_len / 2 values will be padded 
-                      to the right.
+                      Array length equals sequence length.
+                      output_arr[i] represents matching score of seq[i:i+motif_len].
+                      Positions where motif doesn't fit (at the end) are set to minimum score.
         '''
+        if strand not in ["+", "-", "both"]:
+            raise ValueError(f"strand must be one of '+', '-', or 'both'. Got: {strand}")
+        
         seq = seq.upper()
 
         output_arr = np.zeros(len(seq), 
@@ -416,13 +421,27 @@ class MemeMotif:
 
         for i in range(seq_len - motif_len + 1):
             target_seq = seq[i:i + motif_len]
-            score = MemeMotif.calculate_pwm_score(target_seq, motif_pwm, 
-                                                  motif_alphabet, bg_freq, 
-                                                  reverse_complement=reverse_complement,
-                                                  )
-
-            output_arr[i] = score
+            
+            if strand == "+":
+                score = MemeMotif.calculate_pwm_score(target_seq, motif_pwm, 
+                                                      motif_alphabet, bg_freq, 
+                                                      reverse_complement=False)
+                output_arr[i] = score
+            elif strand == "-":
+                score = MemeMotif.calculate_pwm_score(target_seq, motif_pwm, 
+                                                      motif_alphabet, bg_freq, 
+                                                      reverse_complement=True)
+                output_arr[i] = score
+            elif strand == "both":
+                score_fwd = MemeMotif.calculate_pwm_score(target_seq, motif_pwm, 
+                                                         motif_alphabet, bg_freq, 
+                                                         reverse_complement=False)
+                score_rev = MemeMotif.calculate_pwm_score(target_seq, motif_pwm, 
+                                                         motif_alphabet, bg_freq, 
+                                                         reverse_complement=True)
+                output_arr[i] = max(score_fwd, score_rev)
         
+        # Pad positions where motif doesn't fit with minimum score
         output_arr[-motif_len+1:] = output_arr.min()
 
         return output_arr
