@@ -225,6 +225,8 @@ class GeneralElements(abc.ABC):
         Return: 
         - dim: Dimension of the annotation.
         '''
+        if anno_name not in self._anno_length_dict:
+            raise ValueError(f"Annotation '{anno_name}' not found. Available annotations: {list(self._anno_length_dict.keys())}")
         return self._anno_length_dict[anno_name]
 
     def get_anno_arr(self, anno_name):
@@ -237,6 +239,8 @@ class GeneralElements(abc.ABC):
         Return:
         - anno_arr: np.Array, Annotation array.
         '''
+        if anno_name not in self._anno_arr_dict:
+            raise ValueError(f"Annotation '{anno_name}' not found. Available annotations: {list(self._anno_arr_dict.keys())}")
         return self._anno_arr_dict[anno_name]
 
     def get_anno_type(self, anno_name):

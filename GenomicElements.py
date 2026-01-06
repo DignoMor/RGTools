@@ -150,6 +150,8 @@ class GenomicElements(GeneralElements):
         
         for region in self.get_region_bed_table().iter_regions():
             seq = self.get_region_seq(region["chrom"], region["start"], region["end"])
+            if seq is None:
+                raise ValueError(f"Chromosome {region['chrom']} not found in genome file. Cannot export region {region['chrom']}:{region['start']}-{region['end']}")
             with open(fasta_path, "a") as handle:
                 handle.write(f">{region['chrom']}:{region['start']}-{region['end']}\n{seq}\n")
 
@@ -161,7 +163,7 @@ class GenomicElements(GeneralElements):
     
     def get_region_seq(self, chrom: str, start: int, end: int) -> str:
         '''
-        Return the sequene of a given region. 
+        Return the sequence of a given region. 
         The coordinates are of bed convention.
         
         Keyword arguments:
@@ -170,7 +172,7 @@ class GenomicElements(GeneralElements):
         - end: End coordinate.
         
         Returns:
-        - seq: Sequence of the region.
+        - seq: Sequence of the region, or None if chromosome not found.
         '''
         with open(self.fasta_path, "r") as handle:
             for record in SeqIO.parse(handle, "fasta"):
@@ -189,6 +191,11 @@ class GenomicElements(GeneralElements):
         Returns:
         - a new GenomicElements object with the filtered regions.
         '''
+        logical = np.asarray(logical)
+        num_regions = self.get_num_regions()
+        if len(logical) != num_regions:
+            raise ValueError(f"Logical array length ({len(logical)}) does not match number of regions ({num_regions})")
+        
         result_bt = self.get_region_bed_table().apply_logical_filter(logical)
         result_bt.write(new_region_file_path)
 
