@@ -109,12 +109,26 @@ class GeneralElements(abc.ABC):
         
         Keyword arguments:
         - anno_name: Name of the annotation.
-        - npy_path: Path to the numpy file.
+        - npy_path: Path to the numpy file (.npy or .npz format).
 
         Returns:
         None
         '''
-        anno_arr = np.load(npy_path)
+        data = np.load(npy_path, allow_pickle=False)
+        # Check if it's an npz file (has 'files' attribute)
+        if hasattr(data, 'files'):
+            # .npz file - extract the array
+            keys = list(data.keys())
+            if len(keys) == 1:
+                anno_arr = data[keys[0]]
+            else:
+                raise ValueError(f"NPZ file {npy_path} contains multiple arrays ({len(keys)}). "
+                               f"Please use .npy format or specify which array to use. "
+                               f"Available keys: {keys}")
+        else:
+            # .npy file - data is already the array
+            anno_arr = data
+        
         self.load_region_anno_from_arr(anno_name, anno_arr)
 
     def load_region_anno_from_arr(self, anno_name, anno_arr):

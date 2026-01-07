@@ -120,6 +120,27 @@ class TestGenomicElements(unittest.TestCase):
         ge.load_region_anno_from_npy(anno_name, npy_path)
         self.assertEqual(ge.get_anno_dim(anno_name), 4)
         self.assertTrue((ge.get_anno_arr(anno_name) == anno_arr).all())
+
+        # Test loading from .npz file
+        anno_name = "test_anno_npz"
+        npz_path = os.path.join(self.__wdir, "test.npz")
+        anno_arr = np.array([5, 6, 7, 8])
+        np.savez(npz_path, anno_arr)
+        
+        ge.load_region_anno_from_npy(anno_name, npz_path)
+        self.assertEqual(ge.get_anno_dim(anno_name), 1)
+        self.assertTrue((ge.get_anno_arr(anno_name) == anno_arr).all())
+
+        # Test error when .npz file contains multiple arrays
+        multi_npz_path = os.path.join(self.__wdir, "test_multi.npz")
+        arr1 = np.array([1, 2, 3, 4])
+        arr2 = np.array([5, 6, 7, 8])
+        np.savez(multi_npz_path, arr1=arr1, arr2=arr2)
+        
+        with self.assertRaises(ValueError) as context:
+            ge.load_region_anno_from_npy("test_multi", multi_npz_path)
+        self.assertIn("contains multiple arrays", str(context.exception))
+        self.assertIn("Available keys", str(context.exception))
     
     def test_load_region_anno_from_arr(self):
         ge = self._init_GenomicElements()
