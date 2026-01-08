@@ -1,7 +1,11 @@
 
 import unittest
+import argparse
 import shutil
 import os
+
+import numpy as np
+from Bio import SeqIO
 
 from RGTools.ExogeneousSequences import ExogeneousSequences
 from RGTools.GenomicElements import GenomicElements
@@ -50,3 +54,56 @@ class TestExogeneousSequences(unittest.TestCase):
         es = ExogeneousSequences(self.__fasta_path)
         self.assertEqual(es.get_all_region_seqs()[1], "GTGTAATTACAA")
         self.assertEqual(es.get_all_region_seqs()[2], "TGTAATTACA")
+
+    def test_region_properties_and_lens(self):
+        es = ExogeneousSequences(self.__fasta_path)
+        self.assertEqual(es.region_file_type, "bed3")
+        self.assertEqual(es.get_all_region_lens(), [10, 12, 10])
+        with self.assertRaises(NotImplementedError):
+            _ = es.region_file_path
+
+    def test_get_all_region_one_hot_requires_homogeneous_lengths(self):
+        es = ExogeneousSequences(self.__fasta_path)
+        with self.assertRaises(ValueError):
+            es.get_all_region_one_hot()
+
+    def test_apply_logical_filter_copies_annotations(self):
+        es = ExogeneousSequences(self.__fasta_path)
+        stat = np.array([0.1, 0.6, 0.2])
+        track = np.vstack([
+            np.arange(12),
+            np.arange(12) + 10,
+            np.arange(12) + 20,
+        ])
+        es.load_region_anno_from_arr("stat", stat)
+        es.load_region_anno_from_arr("track", track)
+
+        mask = np.array([True, False, True], dtype=bool)
+        new_fa = os.path.join(self.__wdir, "filtered.fa")
+        filtered = es.apply_logical_filter(mask, new_fa)
+
+        self.assertTrue(os.path.exists(new_fa))
+        self.assertEqual(filtered.get_sequence_ids(), [
+            "chr2:127048023-127048033",
+            "chr3:123501-123511",
+        ])
+        self.assertEqual(filtered.get_all_region_lens(), [10, 10])
+        np.testing.assert_array_equal(
+            filtered.get_anno_arr("stat").reshape(-1,), stat[mask]
+        )
+        self.assertEqual(filtered.get_anno_type("stat"), "stat")
+        self.assertEqual(filtered.get_anno_type("track"), "track")
+        self.assertEqual(filtered.get_anno_arr("track").shape, (2, 10))
+        np.testing.assert_array_equal(filtered.get_anno_arr("track")[0], track[0, :10])
+        np.testing.assert_array_equal(filtered.get_anno_arr("track")[1], track[2, :10])
+
+    def test_write_sequences_to_fasta(self):
+        out_fa = os.path.join(self.__wdir, "written.fa")
+        seq_ids = ["seqA", "seqB"]
+        seqs = ["ACGT", "TTTT"]
+        ExogeneousSequences.write_sequences_to_fasta(seq_ids, seqs, out_fa)
+
+        with open(out_fa, "r") as handle:
+            parsed = list(SeqIO.parse(handle, "fasta"))
+        self.assertEqual([r.id for r in parsed], seq_ids)
+        self.assertEqual([str(r.seq) for r in parsed], seqs)

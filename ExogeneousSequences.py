@@ -127,6 +127,10 @@ class ExogeneousSequences(GeneralElements):
         # Copy filtered annotations
         for anno_name, anno_arr in self._anno_arr_dict.items():
             new_anno_arr = anno_arr[logical]
+            if self.get_anno_type(anno_name) == "track":
+                new_max_len = int(result_es.get_region_lens().max())
+                if new_anno_arr.shape[1] != new_max_len:
+                    new_anno_arr = new_anno_arr[:, :new_max_len]
             result_es.load_region_anno_from_arr(anno_name, new_anno_arr)
 
         return result_es
