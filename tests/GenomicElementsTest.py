@@ -112,7 +112,7 @@ class TestGenomicElements(unittest.TestCase):
 
         ge.load_region_anno_from_npy(anno_name, npy_path)
         self.assertEqual(ge.get_anno_dim(anno_name), 1)
-        self.assertTrue((ge.get_anno_arr(anno_name) == anno_arr).all())
+        self.assertTrue((ge.get_anno_arr(anno_name).reshape(-1,) == anno_arr).all())
 
         anno_name = "test_anno_multi_dim"
         anno_arr = np.ones((4, 4))
@@ -129,7 +129,7 @@ class TestGenomicElements(unittest.TestCase):
         
         ge.load_region_anno_from_npy(anno_name, npz_path)
         self.assertEqual(ge.get_anno_dim(anno_name), 1)
-        self.assertTrue((ge.get_anno_arr(anno_name) == anno_arr).all())
+        self.assertTrue((ge.get_anno_arr(anno_name).reshape(-1,) == anno_arr).all())
 
         # Test error when .npz file contains multiple arrays
         multi_npz_path = os.path.join(self.__wdir, "test_multi.npz")
@@ -150,7 +150,41 @@ class TestGenomicElements(unittest.TestCase):
         ge.load_region_anno_from_arr(anno_name, anno_arr)
 
         self.assertEqual(ge.get_anno_dim(anno_name), 1)
-        self.assertTrue((ge.get_anno_arr(anno_name) == anno_arr).all())
+        self.assertTrue((ge.get_anno_arr(anno_name).reshape(-1,) == anno_arr).all())
+        self.assertEqual(ge.get_anno_type(anno_name), "stat")
+
+    def test_load_region_anno_from_arr_stat_shapes(self):
+        ge = self._init_GenomicElements()
+        # Accept (N,) and store as (N,1)
+        anno = np.array([10, 20, 30, 40])
+        ge.load_region_anno_from_arr("stat1", anno)
+        self.assertEqual(ge.get_anno_arr("stat1").shape, (4, 1))
+        self.assertEqual(ge.get_anno_type("stat1"), "stat")
+        # Accept (N,1) unchanged
+        anno2 = np.array([[1], [2], [3], [4]])
+        ge.load_region_anno_from_arr("stat2", anno2)
+        self.assertEqual(ge.get_anno_arr("stat2").shape, (4, 1))
+        self.assertEqual(ge.get_anno_type("stat2"), "stat")
+
+    def test_load_region_anno_from_arr_track_requires_max_len(self):
+        ge = self._init_GenomicElements()
+        # Track with correct width (max region length = 4)
+        track = np.ones((4, 4))
+        ge.load_region_anno_from_arr("track_ok", track)
+        self.assertEqual(ge.get_anno_type("track_ok"), "track")
+        self.assertEqual(ge.get_anno_dim("track_ok"), 4)
+        # Track with wrong width should raise
+        bad_track = np.ones((4, 3))
+        with self.assertRaises(ValueError):
+            ge.load_region_anno_from_arr("track_bad", bad_track)
+
+    def test_get_region_anno_by_index(self):
+        ge = self._init_GenomicElements()
+        ge.load_region_anno_from_arr("stat", np.array([1, 2, 3, 4]))
+        self.assertEqual(ge.get_region_anno_by_index("stat", 2), 3)
+        ge.load_region_anno_from_arr("track", np.arange(16).reshape(4, 4))
+        # Regions are length-homogeneous length=4 in test data
+        self.assertTrue((ge.get_region_anno_by_index("track", 1) == np.array([4,5,6,7])).all())
     
     def test_save_anno_npy(self):
         ge = self._init_GenomicElements()
@@ -162,13 +196,17 @@ class TestGenomicElements(unittest.TestCase):
         ge.save_anno_npy(anno_name, npy_path)
 
         self.assertTrue(os.path.exists(npy_path))
-        self.assertTrue((np.load(npy_path) == anno_arr).all())
+        self.assertTrue((np.load(npy_path).reshape(-1,) == anno_arr).all())
 
     def test_apply_logical_filter(self):
         ge = self._init_GenomicElements()
         anno_name = "test_anno"
         anno_arr = np.array([1,2,3,4])
         ge.load_region_anno_from_arr(anno_name, anno_arr)
+
+        # Track aligned to max len (4)
+        track_arr = np.arange(16).reshape(4, 4)
+        ge.load_region_anno_from_arr("track", track_arr)
 
         logical = np.array([True, False, True, False])
 
@@ -177,5 +215,12 @@ class TestGenomicElements(unittest.TestCase):
 
         self.assertEqual(new_ge.get_num_regions(), 2)
         self.assertEqual(new_ge.get_anno_dim(anno_name), 1)
-        self.assertTrue((new_ge.get_anno_arr(anno_name) == np.array([1,3])).all())
+        self.assertTrue((new_ge.get_anno_arr(anno_name).reshape(-1,) == np.array([1,3])).all())
+        self.assertEqual(new_ge.get_anno_type(anno_name), "stat")
+
+        # Track should be trimmed to new max len after filter (regions kept are same length=4 here)
+        self.assertEqual(new_ge.get_anno_type("track"), "track")
+        self.assertEqual(new_ge.get_anno_arr("track").shape, (2, 4))
+        np.testing.assert_array_equal(new_ge.get_anno_arr("track")[0], np.array([0,1,2,3]))
+        np.testing.assert_array_equal(new_ge.get_anno_arr("track")[1], np.array([8,9,10,11]))
 

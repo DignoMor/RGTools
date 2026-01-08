@@ -23,7 +23,7 @@ class GenomicElements(GeneralElements):
         - fasta_path: Path to the genome file.
         '''
         super().__init__()
-        self.region_file_path = region_file_path
+        self._region_file_path = region_file_path
         self._region_file_type = region_file_type
         if not self._region_file_type in self.get_region_file_suffix2class_dict().keys():
             raise ValueError(f"Invalid region file type: {self._region_file_type}")
@@ -40,6 +40,10 @@ class GenomicElements(GeneralElements):
     @property
     def region_file_type(self):
         return self._region_file_type
+
+    @property
+    def region_file_path(self):
+        return self._region_file_path
 
     @staticmethod
     def get_region_file_suffix2class_dict():
@@ -195,6 +199,10 @@ class GenomicElements(GeneralElements):
         
         for anno_name, anno_arr in self._anno_arr_dict.items():
             new_anno_arr = anno_arr[logical]
+            if self.get_anno_type(anno_name) == "track":
+                new_max_len = int(result_ge.get_region_lens().max())
+                if new_anno_arr.shape[1] != new_max_len:
+                    new_anno_arr = new_anno_arr[:, :new_max_len]
             result_ge.load_region_anno_from_arr(anno_name, new_anno_arr)
 
         return result_ge
