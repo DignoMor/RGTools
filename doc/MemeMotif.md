@@ -1,8 +1,6 @@
 ---
 title: MemeMotif Module
-module: MemeMotif
 description: Parse, manipulate, and write MEME motif format files
-version: 1.0
 ---
 
 # MemeMotif Module

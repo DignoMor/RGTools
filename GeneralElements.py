@@ -21,6 +21,7 @@ class GeneralElements(abc.ABC):
         '''
         self._anno_arr_dict = {}
         self._anno_length_dict = {}
+        self._anno_type_dict = {}
 
     @property
     @abc.abstractmethod
@@ -36,6 +37,15 @@ class GeneralElements(abc.ABC):
     def region_file_type(self):
         '''
         Abstract property for the region file type.
+        Must be implemented by subclasses.
+        '''
+        pass
+
+    @property
+    @abc.abstractmethod
+    def region_file_path(self):
+        '''
+        Abstract property for the path to the region file.
         Must be implemented by subclasses.
         '''
         pass
@@ -72,6 +82,13 @@ class GeneralElements(abc.ABC):
         
         return out_seqs
 
+    def get_region_lens(self):
+        '''
+        Return an array of per-region lengths.
+        '''
+        bed_table = self.get_region_bed_table()
+        return np.array([r["end"] - r["start"] for r in bed_table.iter_regions()], dtype=int)
+
     def get_all_region_one_hot(self):
         '''
         Get the one hot encoding for all regions.
@@ -82,7 +99,7 @@ class GeneralElements(abc.ABC):
 
         out_seq_lens = np.array([len(s) for s in out_seqs])
         if not (out_seq_lens == out_seq_lens[0]).all():
-            raise ValueError(f"Region sequences have different lengths: {out_seq_lens}")
+            raise ValueError(f"Regions are not length-homogeneous; lengths={out_seq_lens.tolist()}")
         
         out_arr = np.zeros((len(out_seqs), out_seq_lens[0], 4), dtype="int8")
         for i, seq in enumerate(out_seqs):
@@ -147,13 +164,32 @@ class GeneralElements(abc.ABC):
         if anno_shape[0] != self.get_num_regions():
             raise ValueError(f"Annotation shape {anno_shape} does not match the number of regions: {self.get_num_regions()}")
         
+        # Normalize and classify stats: accept (N,) or (N,1), store as (N,1)
         if len(anno_shape) == 1:
+            anno_arr = np.asarray(anno_arr).reshape(-1, 1)
             self._anno_arr_dict[anno_name] = anno_arr
             self._anno_length_dict[anno_name] = 1
-        
-        else:
+            self._anno_type_dict[anno_name] = "stat"
+            return
+
+        if len(anno_shape) != 2:
+            raise ValueError(f"Annotation array must be 1D or 2D; got shape {anno_shape}")
+
+        region_lens = self.get_region_lens()
+        max_len = int(region_lens.max())
+        if anno_shape[1] == 1:
+            # Treat (N,1) as stat
             self._anno_arr_dict[anno_name] = anno_arr
-            self._anno_length_dict[anno_name] = anno_shape[1]
+            self._anno_length_dict[anno_name] = 1
+            self._anno_type_dict[anno_name] = "stat"
+            return
+
+        if anno_shape[1] != max_len:
+            raise ValueError(f"Track annotation width {anno_shape[1]} must equal max region length {max_len}")
+
+        self._anno_arr_dict[anno_name] = anno_arr
+        self._anno_length_dict[anno_name] = max_len
+        self._anno_type_dict[anno_name] = "track"
 
     def get_anno_dim(self, anno_name):
         '''
@@ -178,6 +214,28 @@ class GeneralElements(abc.ABC):
         - anno_arr: np.Array, Annotation array.
         '''
         return self._anno_arr_dict[anno_name]
+
+    def get_anno_type(self, anno_name):
+        '''
+        Return the annotation type: "stat" or "track".
+        '''
+        return self._anno_type_dict[anno_name]
+
+    def get_region_anno_by_index(self, anno_name, index):
+        '''
+        Return the annotation for a specific region index.
+        If the annotation is length-homogeneous padding, slice to the region length.
+        '''
+        anno_arr = self.get_anno_arr(anno_name)
+        anno_type = self.get_anno_type(anno_name)   
+        if anno_type == "stat":
+            return anno_arr[index, 0]
+
+        if anno_type == "track":
+            region_len = int(self.get_region_lens()[index])
+            return anno_arr[index, :region_len]
+        else:
+            raise ValueError(f"Invalid annotation type: {anno_type}")
     
     def save_anno_npy(self, anno_name, npy_path):
         '''
