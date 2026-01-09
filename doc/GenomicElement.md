@@ -30,7 +30,7 @@ GenomicElements(region_file_path: str, region_file_type: str, fasta_path: str)
 - `bed3gene`: BED3 + `gene_symbol`
 - `bed6gene`: BED6 + `gene_symbol`
 - `narrowPeak`: BED6 + (`signalValue`, `pValue`, `qValue`, `peak`)
-- `TREbed`: BED3 + (`name`, `fwsTSS`, `revTSS`)
+- `TREbed`: BED3 + (`name`, `fwdTSS`, `revTSS`)
 - `bedGraph`: BED3 + (`dataValue`)
 
 **Essential Methods:**
