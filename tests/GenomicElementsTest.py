@@ -153,6 +153,32 @@ class TestGenomicElements(unittest.TestCase):
         self.assertTrue((ge.get_anno_arr(anno_name).reshape(-1,) == anno_arr).all())
         self.assertEqual(ge.get_anno_type(anno_name), "stat")
 
+    def test_load_region_track_from_list(self):
+        # Create a bed file with different lengths
+        hetero_bed = os.path.join(self.__wdir, "hetero_load_list.bed")
+        with open(hetero_bed, "w") as f:
+            f.write("chr1\t123400\t123500\n") # 100bp
+            f.write("chr1\t124400\t124450\n") # 50bp
+        
+        ge = GenomicElements(hetero_bed, "bed3", self.__hg38_genome_path)
+        
+        # Correct lengths: 100 and 50
+        anno_list = [np.ones(100), np.ones(50)]
+        ge.load_region_track_from_list("test_list", anno_list)
+        
+        output = ge.get_anno_arr("test_list")
+        # Max length should be 100
+        self.assertEqual(output.shape, (2, 100))
+        # First region should be all ones
+        self.assertTrue(np.all(output[0] == 1))
+        # Second region should be all ones
+        self.assertTrue(np.all(output[1, :50] == 1))
+        self.assertTrue(np.all(output[1, 50:] == 0)) # padded area
+
+        # Test get_region_anno_by_index
+        self.assertTrue(np.all(ge.get_region_anno_by_index("test_list", 0) == np.ones(100)))
+        self.assertTrue(np.all(ge.get_region_anno_by_index("test_list", 1) == np.ones(50)))
+
     def test_load_region_anno_from_arr_stat_shapes(self):
         ge = self._init_GenomicElements()
         # Accept (N,) and store as (N,1)

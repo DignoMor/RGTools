@@ -148,6 +148,30 @@ class GeneralElements(abc.ABC):
         
         self.load_region_anno_from_arr(anno_name, anno_arr)
 
+    def load_region_track_from_list(self, anno_name, anno_list):
+        '''
+        Load per-region annotation track from a python list.
+        Useful when loading annotations for non-length-homogeneous elements.
+        
+        Keyword arguments:
+        - anno_name: Name of the annotation.
+        - anno_list: List of numpy arrays, one for each region.
+        '''
+        if len(anno_list) != self.get_num_regions():
+            raise ValueError(f"List length {len(anno_list)} does not match number of regions {self.get_num_regions()}")
+        
+        region_lens = self.get_region_lens()
+        for i, (anno, region_len) in enumerate(zip(anno_list, region_lens)):
+            if len(anno) != region_len:
+                raise ValueError(f"Annotation length at index {i} ({len(anno)}) does not match region length ({region_len})")
+        
+        max_len = int(region_lens.max())
+        anno_arr = np.zeros((len(anno_list), max_len))
+        for i, anno in enumerate(anno_list):
+            anno_arr[i, :len(anno)] = anno
+            
+        self.load_region_anno_from_arr(anno_name, anno_arr)
+
     def load_region_anno_from_arr(self, anno_name, anno_arr):
         '''
         Load annotation for each element in the region file. 

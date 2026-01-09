@@ -52,6 +52,11 @@ Abstract base class for `GenomicElements` and `ExogeneousSequences`. Provides sh
   - Track annotations accept only `(N, L), L = max(region length)`. A Value error will be 
     raised otherwise.
 
+- `load_region_track_from_list(anno_name: str, anno_list: list[np.ndarray]) -> None`
+  - Loads per-region annotation track from a python list.
+  - useful when loading annotations for non-length-homogeneous elements
+  - `anno_list[i]` must have the same length as the ith element
+
 - `get_anno_arr(anno_name: str) -> np.ndarray`
   - Returns the stored annotation array.
 
