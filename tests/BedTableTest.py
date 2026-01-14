@@ -754,11 +754,11 @@ class TestBedTablePairEnd(TestBedTable):
 
         self.assertArrayEqual(strands2, self.data_df["strand2"].values)
 
-    def test_get_extra_column(self):
+    def test_get_region_extra_column(self):
         bed_table = self.__init_test_bed_table()
 
         for extra_field_name, extra_field_dtype in zip(self.extra_field_names, self.extra_field_dtype):
-            extra_field_data = bed_table.get_extra_column(extra_field_name)
+            extra_field_data = bed_table.get_region_extra_column(extra_field_name)
 
             self.assertArrayEqual(extra_field_data, self.data_df[extra_field_name].values)
 

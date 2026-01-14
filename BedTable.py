@@ -681,8 +681,8 @@ class BedTablePairEnd(BedTable3):
         super().load_from_dataframe(df, column_map)
         self._other_region_inverse_index = self._build_inverse_index_for_the_other_region()
 
-    def load_from_file(self, ipath: str) -> None:
-        super().load_from_file(ipath)
+    def load_from_file(self, inpath: str) -> None:
+        super().load_from_file(inpath)
         self._other_region_inverse_index = self._build_inverse_index_for_the_other_region()
 
     @property
@@ -757,7 +757,7 @@ class BedTablePairEnd(BedTable3):
         '''
         return self._data_df["strand2"].values
 
-    def get_extra_column(self, column_name) -> np.array:
+    def get_region_extra_column(self, column_name) -> np.array:
         '''
         Return a np.array of extra column data for all the regions. Given the column name.
         '''
@@ -798,7 +798,7 @@ class BedTablePairEnd(BedTable3):
 
         all_result_bt = forward_result_bed_table.concat(backward_result_bed_table)
 
-        return all_result_bt.get_extra_column(column_name)
+        return all_result_bt.get_region_extra_column(column_name)
 
     def search_second_region(self, chrom: str, start: int, end: int, overlapping_base=1) -> np.array:
         '''
