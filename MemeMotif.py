@@ -381,8 +381,8 @@ class MemeMotif:
         score = 0
 
         for i, char in enumerate(seq):
-            score += np.log10(pwm[i, alphabet2idx[char]]) - \
-                np.log10(bg_freq[alphabet2idx[char]])
+            score += np.log10(pwm[i, alphabet2idx[char]] + 1e-10) - \
+                np.log10(bg_freq[alphabet2idx[char]] + 1e-10)
 
         return score
 

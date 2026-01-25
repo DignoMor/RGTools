@@ -7,6 +7,7 @@ import os
 import numpy as np
 
 from ..MemeMotif import MemeMotif
+from ..utils import reverse_complement as RC
 
 class TestMemeMotif(unittest.TestCase):
     def setUp(self):
@@ -171,7 +172,7 @@ class TestMemeMotif(unittest.TestCase):
                                               bg_freq=meme.get_bg_freq(), 
                                               reverse_complement=True, 
                                               )
-        self.assertAlmostEqual(score, -np.inf)
+        self.assertTrue(score < -10)
 
     def test_search_one_motif(self):
         """Test search_one_motif with default strand='+'"""
@@ -191,19 +192,27 @@ class TestMemeMotif(unittest.TestCase):
     def test_search_one_motif_reverse_strand(self):
         """Test search_one_motif with strand='-'"""
         meme = MemeMotif(self._meme_file_path)
-        score_arr_rev = MemeMotif.search_one_motif("CGCGATCGATCGTTAAGTTG", 
+        test_seq="TGTGATCGAGGTCACACTTATCGAAGTGTGACCTCGATCACA"
+        score_arr_rev = MemeMotif.search_one_motif(test_seq, 
                                                    meme.get_alphabet(), 
                                                    meme.get_motif_pwm("crp"), 
                                                    bg_freq=meme.get_bg_freq(), 
                                                    strand="-")
         # Reverse strand should give different scores than forward
-        score_arr_fwd = MemeMotif.search_one_motif("CGCGATCGATCGTTAAGTTG", 
+        score_arr_fwd = MemeMotif.search_one_motif(test_seq, 
                                                    meme.get_alphabet(), 
                                                    meme.get_motif_pwm("crp"), 
                                                    bg_freq=meme.get_bg_freq(), 
                                                    strand="+")
-        # They should be different (unless sequence is palindromic)
-        self.assertFalse(np.allclose(score_arr_rev, score_arr_fwd))
+    
+        score_arr_rc_fwd = MemeMotif.search_one_motif(RC(test_seq), 
+                                                      meme.get_alphabet(), 
+                                                      meme.get_motif_pwm("crp"), 
+                                                      bg_freq=meme.get_bg_freq(), 
+                                                      strand="+",
+                                                      )
+
+        self.assertEqual(score_arr_rev[-motif_len], score_arr_rc_fwd[0])
     
     def test_search_one_motif_both_strands(self):
         """Test search_one_motif with strand='both'"""
