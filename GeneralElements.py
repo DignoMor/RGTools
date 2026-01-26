@@ -87,7 +87,7 @@ class GeneralElements(abc.ABC):
         Return an array of per-region lengths.
         '''
         bed_table = self.get_region_bed_table()
-        return np.array([r["end"] - r["start"] for r in bed_table.iter_regions()], dtype=int)
+        return bed_table.get_end_locs() - bed_table.get_start_locs()
 
     def get_all_region_one_hot(self):
         '''
@@ -244,6 +244,19 @@ class GeneralElements(abc.ABC):
         Return the annotation type: "stat" or "track".
         '''
         return self._anno_type_dict[anno_name]
+
+    def get_anno_list(self, anno_name):
+        '''
+        Return a list of signal tracks in np.ndarray.
+        Returned arrays will be sliced to element length.
+        '''
+        anno_arr = self.get_anno_arr(anno_name)
+        anno_type = self.get_anno_type(anno_name)
+        if anno_type == "stat":
+            return [anno_arr[i] for i in range(self.get_num_regions())]
+        
+        region_lens = self.get_region_lens()
+        return [anno_arr[i, :region_lens[i]] for i in range(self.get_num_regions())]
 
     def get_region_anno_by_index(self, anno_name, index):
         '''

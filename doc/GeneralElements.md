@@ -27,7 +27,7 @@ Abstract base class for `GenomicElements` and `ExogeneousSequences`. Provides sh
 - `apply_logical_filter(logical: np.ndarray, new_path: str) -> GeneralElements`
   - Filters regions using a boolean mask and writes the filtered regions to `new_path`.
 
-**Essential Methods:**
+**Essential Getter Methods:**
 
 - `get_num_regions() -> int`
   - Returns the number of regions (delegates to the bed table length).
@@ -42,30 +42,26 @@ Abstract base class for `GenomicElements` and `ExogeneousSequences`. Provides sh
 - `get_anno_type(anno_name: str) -> str`: 
   - Return the type of the annotation (track or stat)
 
-- `load_region_anno_from_npy(anno_name: str, npy_path: str) -> None`
-  - Loads per-region annotation from `.npy` **or** single-array `.npz`.
+- `get_region_lens() -> np.ndarray`
+  - Return the lengths of each region as an array.
 
-- `load_region_anno_from_arr(anno_name: str, anno_arr: np.ndarray) -> None`
-  - Loads per-region annotation from a numpy array.
-  - `anno_arr.shape[0]` must equal `get_num_regions()`.
-  - Stats accept `(N,)` or `(N, 1)` and are stored as `(N, 1)`.
-  - Track annotations accept only `(N, L), L = max(region length)`. A Value error will be 
-    raised otherwise.
+- `get_anno_list(anno_name: str) -> list[np.ndarray]`
+  - Return a list of signal tracks in np.ndarray.
+  - For homogeneous elements, use `get_anno_arr` for better efficiency.
+  - Returned arrays will be sliced to element length.
+
+- `get_region_anno_by_index(anno_name: str, index: int)`
+  - Returns annotation for a specific region.
+  - For padded annotations, slices to the region’s length.
+
+**Essential Setter Methods:**
 
 - `load_region_track_from_list(anno_name: str, anno_list: list[np.ndarray]) -> None`
   - Loads per-region annotation track from a python list.
   - useful when loading annotations for non-length-homogeneous elements
   - `anno_list[i]` must have the same length as the ith element
 
-- `get_anno_arr(anno_name: str) -> np.ndarray`
-  - Returns the stored annotation array.
-
-- `get_region_lens() -> np.ndarray`
-  - Return the lengths of each region as an array.
-
-- `get_region_anno_by_index(anno_name: str, index: int)`
-  - Returns annotation for a specific region.
-  - For padded annotations, slices to the region’s length.
+**Essential IO Methods:**
 
 - `save_anno_npy(anno_name: str, npy_path: str) -> None`
   - Saves annotation to `.npy`.
@@ -73,7 +69,22 @@ Abstract base class for `GenomicElements` and `ExogeneousSequences`. Provides sh
 - `save_anno_npz(anno_name: str, npz_path: str) -> None`
   - Saves annotation to compressed `.npz`.
 
+**Methods needs extra caution when used with non-length-homogeneous Elements**
+
+- `get_anno_arr(anno_name: str) -> np.ndarray`
+  - Returns the stored annotation array.
+
+- `load_region_anno_from_npy(anno_name: str, npy_path: str) -> None`
+  - Loads per-region annotation from `.npy` **or** single-array `.npz`.
+
 **Methods restricted to length-homogeneous Elements**
+
+- `load_region_anno_from_arr(anno_name: str, anno_arr: np.ndarray) -> None`
+  - Loads per-region annotation from a numpy array.
+  - `anno_arr.shape[0]` must equal `get_num_regions()`.
+  - Stats accept `(N,)` or `(N, 1)` and are stored as `(N, 1)`.
+  - Track annotations accept only `(N, L), L = max(region length)`. A Value error will be 
+    raised otherwise.
 
 - `get_all_region_one_hot() -> np.ndarray`
   - Returns array of shape `(num_regions, region_length, 4)`.

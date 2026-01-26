@@ -212,6 +212,34 @@ class TestGenomicElements(unittest.TestCase):
         # Regions are length-homogeneous length=4 in test data
         self.assertTrue((ge.get_region_anno_by_index("track", 1) == np.array([4,5,6,7])).all())
     
+    def test_get_anno_list(self):
+        # Create a bed file with different lengths
+        hetero_bed = os.path.join(self.__wdir, "hetero_get_list.bed")
+        with open(hetero_bed, "w") as f:
+            f.write("chr1\t123400\t123500\n") # 100bp
+            f.write("chr1\t124400\t124450\n") # 50bp
+        
+        ge = GenomicElements(hetero_bed, "bed3", self.__hg38_genome_path)
+        
+        # Test with track
+        anno_list = [np.ones(100), np.zeros(50)]
+        ge.load_region_track_from_list("test_track", anno_list)
+        
+        output_list = ge.get_anno_list("test_track")
+        self.assertEqual(len(output_list), 2)
+        self.assertTrue(np.all(output_list[0] == 1))
+        self.assertEqual(len(output_list[0]), 100)
+        self.assertTrue(np.all(output_list[1] == 0))
+        self.assertEqual(len(output_list[1]), 50)
+
+        # Test with stat
+        stat_arr = np.array([10.5, 20.5])
+        ge.load_region_anno_from_arr("test_stat", stat_arr)
+        output_stat_list = ge.get_anno_list("test_stat")
+        self.assertEqual(len(output_stat_list), 2)
+        self.assertEqual(output_stat_list[0][0], 10.5)
+        self.assertEqual(output_stat_list[1][0], 20.5)
+
     def test_save_anno_npy(self):
         ge = self._init_GenomicElements()
         anno_name = "test_anno"

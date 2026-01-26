@@ -107,3 +107,15 @@ class TestExogeneousSequences(unittest.TestCase):
             parsed = list(SeqIO.parse(handle, "fasta"))
         self.assertEqual([r.id for r in parsed], seq_ids)
         self.assertEqual([str(r.seq) for r in parsed], seqs)
+
+    def test_get_anno_list(self):
+        es = ExogeneousSequences(self.__fasta_path)
+        # Lengths are [10, 12, 10]
+        track_list = [np.ones(10), np.zeros(12), np.ones(10) * 2]
+        es.load_region_track_from_list("test_track", track_list)
+        
+        output_list = es.get_anno_list("test_track")
+        self.assertEqual(len(output_list), 3)
+        np.testing.assert_array_equal(output_list[0], track_list[0])
+        np.testing.assert_array_equal(output_list[1], track_list[1])
+        np.testing.assert_array_equal(output_list[2], track_list[2])
