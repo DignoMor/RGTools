@@ -172,6 +172,50 @@ class GeneralElements(abc.ABC):
             
         self.load_region_anno_from_arr(anno_name, anno_arr)
 
+    def load_region_stat_from_arr(self, anno_name, anno_arr):
+        '''
+        Load per-region annotation stat from a numpy array.
+        
+        Keyword arguments:
+        - anno_name: Name of the annotation.
+        - anno_arr: numpy array of shape (N,) or (N, 1) containing stat values.
+        '''
+        anno_arr = np.asarray(anno_arr)
+        if anno_arr.shape[0] != self.get_num_regions():
+            raise ValueError(f"Array length {anno_arr.shape[0]} does not match number of regions {self.get_num_regions()}")
+        
+        # Reshape to (N, 1) if needed
+        if len(anno_arr.shape) == 1:
+            anno_arr = anno_arr.reshape(-1, 1)
+        elif len(anno_arr.shape) == 2 and anno_arr.shape[1] == 1:
+            pass  # Already correct shape
+        else:
+            raise ValueError(f"Stat array must be 1D or 2D with shape (N, 1); got shape {anno_arr.shape}")
+        
+        self.load_region_anno_from_arr(anno_name, anno_arr)
+
+    def load_mask_from_arr(self, anno_name, anno_arr):
+        '''
+        Load per-region mask from a numpy array.
+        
+        Keyword arguments:
+        - anno_name: Name of the annotation.
+        - anno_arr: numpy array of shape (N,) or (N, 1) containing boolean values.
+        '''
+        anno_arr = np.asarray(anno_arr, dtype=bool)
+        if anno_arr.shape[0] != self.get_num_regions():
+            raise ValueError(f"Array length {anno_arr.shape[0]} does not match number of regions {self.get_num_regions()}")
+        
+        # Reshape to (N, 1) if needed
+        if len(anno_arr.shape) == 1:
+            anno_arr = anno_arr.reshape(-1, 1)
+        elif len(anno_arr.shape) == 2 and anno_arr.shape[1] == 1:
+            pass  # Already correct shape
+        else:
+            raise ValueError(f"Mask array must be 1D or 2D with shape (N, 1); got shape {anno_arr.shape}")
+        
+        self.load_region_anno_from_arr(anno_name, anno_arr)
+
     def load_region_anno_from_arr(self, anno_name, anno_arr):
         '''
         Load annotation for each element in the region file. 
@@ -188,12 +232,17 @@ class GeneralElements(abc.ABC):
         if anno_shape[0] != self.get_num_regions():
             raise ValueError(f"Annotation shape {anno_shape} does not match the number of regions: {self.get_num_regions()}")
         
-        # Normalize and classify stats: accept (N,) or (N,1), store as (N,1)
+        # Normalize and classify stats/masks: accept (N,) or (N,1), store as (N,1)
         if len(anno_shape) == 1:
             anno_arr = np.asarray(anno_arr).reshape(-1, 1)
+            # Detect boolean arrays as masks
+            if np.issubdtype(anno_arr.dtype, bool):
+                anno_type = "mask"
+            else:
+                anno_type = "stat"
             self._anno_arr_dict[anno_name] = anno_arr
             self._anno_length_dict[anno_name] = 1
-            self._anno_type_dict[anno_name] = "stat"
+            self._anno_type_dict[anno_name] = anno_type
             return
 
         if len(anno_shape) != 2:
@@ -202,10 +251,15 @@ class GeneralElements(abc.ABC):
         region_lens = self.get_region_lens()
         max_len = int(region_lens.max())
         if anno_shape[1] == 1:
-            # Treat (N,1) as stat
+            # Treat (N,1) as stat or mask
+            # Detect boolean arrays as masks
+            if np.issubdtype(anno_arr.dtype, bool):
+                anno_type = "mask"
+            else:
+                anno_type = "stat"
             self._anno_arr_dict[anno_name] = anno_arr
             self._anno_length_dict[anno_name] = 1
-            self._anno_type_dict[anno_name] = "stat"
+            self._anno_type_dict[anno_name] = anno_type
             return
 
         if anno_shape[1] != max_len:
@@ -245,7 +299,7 @@ class GeneralElements(abc.ABC):
 
     def get_anno_type(self, anno_name):
         '''
-        Return the annotation type: "stat" or "track".
+        Return the annotation type: "stat", "track", or "mask".
         '''
         return self._anno_type_dict[anno_name]
 
@@ -256,7 +310,7 @@ class GeneralElements(abc.ABC):
         '''
         anno_arr = self.get_anno_arr(anno_name)
         anno_type = self.get_anno_type(anno_name)
-        if anno_type == "stat":
+        if anno_type == "stat" or anno_type == "mask":
             return [anno_arr[i] for i in range(self.get_num_regions())]
         
         region_lens = self.get_region_lens()
@@ -269,7 +323,7 @@ class GeneralElements(abc.ABC):
         '''
         anno_arr = self.get_anno_arr(anno_name)
         anno_type = self.get_anno_type(anno_name)   
-        if anno_type == "stat":
+        if anno_type == "stat" or anno_type == "mask":
             return anno_arr[index, 0]
 
         if anno_type == "track":

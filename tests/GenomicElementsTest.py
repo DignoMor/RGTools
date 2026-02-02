@@ -278,3 +278,87 @@ class TestGenomicElements(unittest.TestCase):
         np.testing.assert_array_equal(new_ge.get_anno_arr("track")[0], np.array([0,1,2,3]))
         np.testing.assert_array_equal(new_ge.get_anno_arr("track")[1], np.array([8,9,10,11]))
 
+    def test_load_region_stat_from_arr(self):
+        ge = self._init_GenomicElements()
+        # Test loading stats from a 1D numpy array
+        stat_arr = np.array([10.5, 20.5, 30.5, 40.5])
+        ge.load_region_stat_from_arr("stat_arr", stat_arr)
+        
+        self.assertEqual(ge.get_anno_type("stat_arr"), "stat")
+        self.assertEqual(ge.get_anno_arr("stat_arr").shape, (4, 1))
+        np.testing.assert_array_equal(ge.get_anno_arr("stat_arr").reshape(-1,), 
+                                      np.array([10.5, 20.5, 30.5, 40.5]))
+        
+        # Test loading stats from a 2D array with shape (N, 1)
+        stat_arr_2d = np.array([[1.0], [2.0], [3.0], [4.0]])
+        ge.load_region_stat_from_arr("stat_arr_2d", stat_arr_2d)
+        self.assertEqual(ge.get_anno_type("stat_arr_2d"), "stat")
+        np.testing.assert_array_equal(ge.get_anno_arr("stat_arr_2d").reshape(-1,), 
+                                      np.array([1.0, 2.0, 3.0, 4.0]))
+        
+        # Test error when array length doesn't match
+        with self.assertRaises(ValueError):
+            ge.load_region_stat_from_arr("bad_stat", np.array([1, 2, 3]))
+        
+        # Test error when array has wrong shape
+        with self.assertRaises(ValueError) as context:
+            ge.load_region_stat_from_arr("bad_stat2", np.array([[1, 2], [3, 4]]))
+        self.assertIn("does not match number of regions", str(context.exception))
+
+    def test_mask_annotation_type(self):
+        ge = self._init_GenomicElements()
+        # Test loading boolean array as 1D -> should be mask
+        mask_arr_1d = np.array([True, False, True, False])
+        ge.load_region_anno_from_arr("mask_1d", mask_arr_1d)
+        self.assertEqual(ge.get_anno_type("mask_1d"), "mask")
+        self.assertEqual(ge.get_anno_arr("mask_1d").shape, (4, 1))
+        self.assertEqual(ge.get_anno_arr("mask_1d").dtype, bool)
+        
+        # Test get_region_anno_by_index with mask
+        self.assertEqual(ge.get_region_anno_by_index("mask_1d", 0), True)
+        self.assertEqual(ge.get_region_anno_by_index("mask_1d", 1), False)
+        
+        # Test get_anno_list with mask
+        mask_list_result = ge.get_anno_list("mask_1d")
+        self.assertEqual(len(mask_list_result), 4)
+        self.assertTrue(mask_list_result[0][0])
+        self.assertFalse(mask_list_result[1][0])
+
+        # Test annotation_type is "mask"
+        self.assertEqual(ge.get_anno_type("mask_1d"), "mask")
+
+    def test_load_mask_from_arr(self):
+        ge = self._init_GenomicElements()
+        # Test loading mask from a 1D numpy array of booleans
+        mask_arr = np.array([True, False, True, False])
+        ge.load_mask_from_arr("mask_arr", mask_arr)
+        
+        self.assertEqual(ge.get_anno_type("mask_arr"), "mask")
+        self.assertEqual(ge.get_anno_arr("mask_arr").shape, (4, 1))
+        self.assertEqual(ge.get_anno_arr("mask_arr").dtype, bool)
+        np.testing.assert_array_equal(ge.get_anno_arr("mask_arr").reshape(-1,), 
+                                      np.array([True, False, True, False]))
+        
+        # Test loading mask from a 2D array with shape (N, 1)
+        mask_arr_2d = np.array([[True], [False], [True], [False]])
+        ge.load_mask_from_arr("mask_arr_2d", mask_arr_2d)
+        self.assertEqual(ge.get_anno_type("mask_arr_2d"), "mask")
+        np.testing.assert_array_equal(ge.get_anno_arr("mask_arr_2d").reshape(-1,), 
+                                      np.array([True, False, True, False]))
+        
+        # Test error when array length doesn't match
+        with self.assertRaises(ValueError):
+            ge.load_mask_from_arr("bad_mask", np.array([True, False, True]))
+        
+        # Test error when array has wrong shape
+        with self.assertRaises(ValueError) as context:
+            ge.load_mask_from_arr("bad_mask2", np.array([[True, False], [True, False]]))
+        self.assertIn("does not match number of regions", str(context.exception))
+        
+        # Test that non-boolean values are converted to bool
+        mask_arr_int = np.array([1, 0, 1, 0])
+        ge.load_mask_from_arr("mask_arr_int", mask_arr_int)
+        self.assertEqual(ge.get_anno_arr("mask_arr_int").dtype, bool)
+        np.testing.assert_array_equal(ge.get_anno_arr("mask_arr_int").reshape(-1,), 
+                                      np.array([True, False, True, False]))
+

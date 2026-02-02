@@ -25,7 +25,7 @@ Abstract base class for `GenomicElements` and `ExogeneousSequences`. Provides sh
 - `get_region_bed_table() -> BedTable`
   - Returns the underlying bed table object for the subclass.
 - `apply_logical_filter(logical: np.ndarray, new_path: str) -> GeneralElements`
-  - Filters regions using a boolean mask and writes the filtered regions to `new_path`.
+  - Filters regions using a **mask** and writes the filtered regions to `new_path`.
 
 **Essential Getter Methods:**
 
@@ -40,7 +40,7 @@ Abstract base class for `GenomicElements` and `ExogeneousSequences`. Provides sh
   - Returns an array of per-region lengths (`end - start`).
 
 - `get_anno_type(anno_name: str) -> str`: 
-  - Return the type of the annotation (track or stat)
+  - Return the type of the annotation (track, stat, or mask)
 
 - `get_region_lens() -> np.ndarray`
   - Return the lengths of each region as an array.
@@ -57,9 +57,15 @@ Abstract base class for `GenomicElements` and `ExogeneousSequences`. Provides sh
 **Essential Setter Methods:**
 
 - `load_region_track_from_list(anno_name: str, anno_list: list[np.ndarray]) -> None`
-  - Loads per-region annotation track from a python list.
+  - Loads per-region annotation **track** from a python list.
   - useful when loading annotations for non-length-homogeneous elements
   - `anno_list[i]` must have the same length as the ith element
+
+- `load_region_stat_from_arr(anno_name: str, anno_list: list) -> None`
+  - Loads per region **stat** from a numpy array.
+
+- `load_mask_from_arr(anno_name:str, anno_list: list) -> None`
+  - Loads a region mask from a numpy array.
 
 **Essential IO Methods:**
 
@@ -135,14 +141,15 @@ are of the same length. Otherwise it is non-length-homogeneous.
 
 ### Annotation types
 
-There are 2 types of annotations
+There are 3 types of annotations
 
-- track: store signal tracks for each element. The second dimension is the element length.
+- **track**: store signal tracks for each element. The second dimension is the element length.
   - for length-homogeneous elements, the second dimension is the length.
   - for non-length-homogeneous elements, the second dimension varies by elements. 
     However, to store the track as np array we pad them to match the longest 
     element and slice the track at the time of retrival.
-- stat: store statistics for each element, the second dimension is of size 1
+- **stat**: store statistics for each element, the second dimension is of size 1
+- **mask**: Store boolean value for each element, same shape as a **stat**.
 
 ### Other Notes 
 
@@ -150,7 +157,9 @@ There are 2 types of annotations
 - `get_all_region_one_hot()` additionally materializes a `(N, L, 4)` array; ensure consistent region lengths first.
 - `.npz` loading via `load_region_anno_from_npy()` only works when the file has exactly one array; otherwise a `ValueError` lists available keys.
 - One-hot encoding treats ambiguous nucleotides as zeros.
-  
+- For general usage, region tracks are loaded from python lists for 
+  the best compatibility. Masks and stats are loaded from arr 
+  since the data can be stored in ndarray of known shape.
 
 
 
