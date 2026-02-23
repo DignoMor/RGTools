@@ -32,6 +32,7 @@ bt = BedTable3(enable_sort=True)
 #### Data I/O
 - **`load_from_file(ipath)`**: Load data from a BED file. Supports `stdin`.
 - **`load_from_dataframe(df, column_map=None)`**: Load data from an existing pandas DataFrame.
+- **`load_from_regions(list[BedRegion])`**: Load data from a list of BedRegions.
 - **`write(opath)`**: Save data to a BED file. Supports `stdout`.
 - **`to_dataframe()`**: Returns a copy of the underlying `pandas.DataFrame`.
 
@@ -51,6 +52,9 @@ bt = BedTable3(enable_sort=True)
 - **`get_region_names()`**, **`get_region_scores()`**, **`get_region_strands()`**: Access basic bed6 information.
 - **`get_pair_names()`**, **`get_pair_scores()`**: Access paired-end specific information (for `BedTablePairEnd`).
 - **`get_region_extra_column(column_name)`**: (For `Plus` classes) Access custom columns as numpy arrays.
+
+#### Region Arithmetics
+- **`merge_sort_bt()`**: Merge sort 2 BedTable, return a merged and sorted BedTable.
 
 ### Helper Factory Methods (in `GenomicElements`)
 

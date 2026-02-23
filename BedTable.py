@@ -245,6 +245,28 @@ class BedTable3:
             if not self._is_sorted():
                 self._sort()
 
+    def load_from_bed_regions(self, bed_regions: list) -> None:
+        '''
+        Load data from a list of BedRegion objects.
+
+        Keyword arguments:
+        - bed_regions: list of BedRegion objects.
+        '''
+        if len(bed_regions) == 0:
+            self._data_df = pd.DataFrame(columns=self.column_names)
+            return None
+
+        for i, region in enumerate(bed_regions):
+            if not isinstance(region, BedRegion):
+                raise BedTableLoadException(
+                    f"Error loading bed regions: item at index {i} is not a BedRegion."
+                )
+
+        data_df = pd.DataFrame([region.to_dict() for region in bed_regions])
+        self.load_from_dataframe(data_df)
+
+        return None
+
     def apply_logical_filter(self, logical_array: np.array) -> 'BedTable3':
         '''
         Use a logical np.array to filter the table.
@@ -387,10 +409,17 @@ class BedTable3:
         Concatenate two bed tables.
         Return a new BedTable instance.
         '''
+        if tuple(self.column_names) != tuple(other_bed_table.column_names):
+            raise ValueError("Cannot concat bed tables with different columns.")
+
+        # Fast path: both inputs are already sorted and result requires sorted output.
+        if self.enable_sort and other_bed_table.enable_sort:
+            # Merge sort will check _is_sorted() internally.
+            return self._merge_sort_bt(self, other_bed_table)
+
+        # Fallback: concatenate then let load_from_dataframe handle sorting when enabled.
         new_bed_table = self._clone_empty()
         new_bed_table.load_from_dataframe(pd.concat([self._data_df, other_bed_table._data_df], ignore_index=True))
-        #TODO: Use merge sort to improve performance
-
         return new_bed_table
     
     def subset_by_index(self, index_array: np.array):
@@ -503,6 +532,57 @@ class BedTable3:
         ind2 = search_end
 
         return ind1, ind2
+
+    @staticmethod
+    def _merge_sort_bt(bt1: 'BedTable3', bt2: 'BedTable3', return_index: bool = False):
+        '''
+        Merge sort two bed tables.
+        Return a new BedTable instance.
+
+        Keyword arguments:
+        - return_index: when True, also return a merge index map of shape (N, 2),
+                        where each row is [source_table, source_index].
+                        source_table is 0 for bt1 and 1 for bt2.
+        '''
+        if tuple(bt1.column_names) != tuple(bt2.column_names):
+            raise ValueError("Cannot merge sort bed tables with different columns.")
+        if not bt1._is_sorted() or not bt2._is_sorted():
+            raise ValueError("Both bed tables must be sorted for merge sort.")
+
+        n1 = len(bt1)
+        n2 = len(bt2)
+        i, j = 0, 0
+        merged_regions = []
+        merge_index_map = []
+
+        # Merge two sorted region streams with BedRegion comparison operators.
+        while i < n1 and j < n2:
+            r1 = bt1.get_region_by_index(i)
+            r2 = bt2.get_region_by_index(j)
+            if r1 <= r2:
+                merged_regions.append(r1)
+                merge_index_map.append([0, i])
+                i += 1
+            else:
+                merged_regions.append(r2)
+                merge_index_map.append([1, j])
+                j += 1
+
+        while i < n1:
+            merged_regions.append(bt1.get_region_by_index(i))
+            merge_index_map.append([0, i])
+            i += 1
+
+        while j < n2:
+            merged_regions.append(bt2.get_region_by_index(j))
+            merge_index_map.append([1, j])
+            j += 1
+
+        out_bt = bt1._clone_empty()
+        out_bt.load_from_bed_regions(merged_regions)
+        if return_index:
+            return out_bt, np.array(merge_index_map, dtype=int)
+        return out_bt
 
 class BedTable3Plus(BedTable3):
     def __init__(self, 

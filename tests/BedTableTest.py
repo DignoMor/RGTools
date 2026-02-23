@@ -14,7 +14,8 @@ from ..BedTable import BedRegion, \
                        BedTable3Plus
 
 from ..exceptions import InvalidBedRegionException, \
-                         InvalidStrandnessException
+                         InvalidStrandnessException, \
+                         BedTableLoadException
 
 class TestBedRegion(unittest.TestCase):
     def test_pad_region(self):
@@ -152,6 +153,15 @@ class TestBedTable3(TestBedTable):
 
         self.assertArrayEqual(bed_table.to_dataframe().values, self.data_df.values)
 
+    def test_load_from_bed_regions(self):
+        src_bed_table = self.__init_test_bed_table()
+        regions = list(src_bed_table.iter_regions())
+
+        bed_table = BedTable3()
+        bed_table.load_from_bed_regions(regions)
+
+        self.assertArrayEqual(bed_table.to_dataframe().values, self.data_df.values)
+
     def test_apply_logical_filter(self):
         logical_array = [True, False, True, False]
         logical_array = np.array(logical_array)
@@ -258,6 +268,32 @@ class TestBedTable3(TestBedTable):
         self.assertArrayEqual(result_bed_table.subset_by_index(np.array([1, 3, 6])).to_dataframe().values,
                               new_bed_table.to_dataframe().values,
                               )
+
+    def test_merge_sort_bt_return_index(self):
+        bed_table = self.__init_test_bed_table()
+
+        new_bed_table = BedTable3()
+        new_bed_table.load_from_dataframe(pd.DataFrame({
+            "chrom": ["chr1", "chr1", "chr2"],
+            "start": [2, 80, 50],
+            "end": [6, 120, 70],
+        }))
+
+        merged_bt, merge_index = BedTable3._merge_sort_bt(bed_table, new_bed_table, return_index=True)
+
+        self.assertEqual(merge_index.shape, (len(bed_table) + len(new_bed_table), 2))
+        self.assertArrayEqual(merge_index[:, 0], np.array([0, 1, 0, 1, 0, 0, 1]))
+        self.assertArrayEqual(merge_index[:, 1], np.array([0, 0, 1, 1, 2, 3, 2]))
+
+        reconstructed_rows = []
+        for source_table, source_idx in merge_index:
+            if source_table == 0:
+                reconstructed_rows.append(bed_table.get_region_by_index(int(source_idx)).to_dict())
+            else:
+                reconstructed_rows.append(new_bed_table.get_region_by_index(int(source_idx)).to_dict())
+
+        reconstructed_df = pd.DataFrame(reconstructed_rows, columns=bed_table.column_names)
+        self.assertArrayEqual(merged_bt.to_dataframe().values, reconstructed_df.values)
     
     def test_is_sorted(self):
         bed_table = self.__init_test_bed_table()
