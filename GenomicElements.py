@@ -102,7 +102,7 @@ class GenomicElements(GeneralElements):
 
     @staticmethod
     def BedTableTREBed(enable_sort=True):
-        bt = BedTable3Plus(extra_column_names=["name", "fwdTSS", "revTSS"], 
+        bt = BedTable3Plus(extra_column_names=["name", "fwsTSS", "revTSS"], 
                            extra_column_dtype=[str, int, int], 
                            enable_sort=enable_sort,
                            )
@@ -134,6 +134,96 @@ class GenomicElements(GeneralElements):
                             type=str, 
                             choices=GenomicElements.get_region_file_suffix2class_dict().keys(),
                             )
+
+    @staticmethod
+    def merge_genomic_elements(left_ge, right_ge, output_region_path, anno2merge, sort_new_ge=True):
+        '''
+        Merge two GenomicElements objects and write merged regions to disk.
+
+        Keyword arguments:
+        - left_ge: Left GenomicElements object.
+        - right_ge: Right GenomicElements object.
+        - output_region_path: Path to write merged regions.
+        - anno2merge: list of annotation names to merge from both objects.
+        - sort_new_ge: Whether to sort merged regions before writing.
+
+        Returns:
+        - A new GenomicElements object loaded from output_region_path.
+        '''
+        if not isinstance(left_ge, GenomicElements) or not isinstance(right_ge, GenomicElements):
+            raise ValueError("left_ge and right_ge must both be GenomicElements instances.")
+
+        if left_ge.region_file_type != right_ge.region_file_type:
+            raise ValueError(
+                f"Cannot merge GenomicElements with different region_file_type: "
+                f"{left_ge.region_file_type} vs {right_ge.region_file_type}"
+            )
+
+        if left_ge.fasta_path != right_ge.fasta_path:
+            raise ValueError(
+                f"Cannot merge GenomicElements with different fasta_path: "
+                f"{left_ge.fasta_path} vs {right_ge.fasta_path}"
+            )
+
+        left_bt = left_ge.get_region_bed_table()
+        right_bt = right_ge.get_region_bed_table()
+        if sort_new_ge:
+            new_bt, merge_index_map = BedTable3._merge_sort_bt(left_bt, right_bt, return_index=True)
+        else:
+            merged_regions = list(left_bt.iter_regions()) + list(right_bt.iter_regions())
+            new_bt = left_bt._clone_empty()
+            new_bt.load_from_bed_regions(merged_regions)
+            left_n = len(left_bt)
+            right_n = len(right_bt)
+            left_map = np.column_stack([np.zeros(left_n, dtype=int), np.arange(left_n, dtype=int)])
+            right_map = np.column_stack([np.ones(right_n, dtype=int), np.arange(right_n, dtype=int)])
+            merge_index_map = np.concatenate([left_map, right_map], axis=0)
+
+        new_bt.write(output_region_path)
+
+        result_ge = GenomicElements(output_region_path,
+                                    left_ge.region_file_type,
+                                    left_ge.fasta_path,
+                                    )
+
+        for anno_name in anno2merge:
+            if anno_name not in left_ge._anno_arr_dict or anno_name not in right_ge._anno_arr_dict:
+                raise ValueError(f"Annotation '{anno_name}' must exist in both input GenomicElements.")
+
+            left_type = left_ge.get_anno_type(anno_name)
+            right_type = right_ge.get_anno_type(anno_name)
+            if left_type != right_type:
+                raise ValueError(
+                    f"Annotation '{anno_name}' type mismatch: left={left_type}, right={right_type}"
+                )
+
+            if left_type in ("stat", "mask"):
+                left_arr = left_ge.get_anno_arr(anno_name)
+                right_arr = right_ge.get_anno_arr(anno_name)
+                if left_arr.shape[1] != right_arr.shape[1]:
+                    raise ValueError(
+                        f"Annotation '{anno_name}' dim mismatch: left={left_arr.shape[1]}, right={right_arr.shape[1]}"
+                    )
+                merged_list= []
+                for source_table, source_index in merge_index_map:
+                    if source_table == 0:
+                        merged_list.append(left_arr[source_index])
+                    else:
+                        merged_list.append(right_arr[source_index])
+            elif left_type == "track":
+                left_list = left_ge.get_anno_list(anno_name)
+                right_list = right_ge.get_anno_list(anno_name)
+                max_len = int(result_ge.get_region_lens().max())
+                merged_list = []
+                for i, (source_table, source_index) in enumerate(merge_index_map):
+                    track = left_list[source_index] if source_table == 0 else right_list[source_index]
+                    merged_list.append(track)
+            else:
+                raise ValueError(f"Unsupported annotation type: {left_type}")
+
+            result_ge.load_region_anno_from_list(anno_name, merged_list)
+
+        return result_ge
 
     def export_exogeneous_sequences(self, fasta_path):
         '''

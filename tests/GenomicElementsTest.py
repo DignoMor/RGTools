@@ -362,3 +362,78 @@ class TestGenomicElements(unittest.TestCase):
         np.testing.assert_array_equal(ge.get_anno_arr("mask_arr_int").reshape(-1,), 
                                       np.array([True, False, True, False]))
 
+    def test_merge_genomic_elements(self):
+        left_path = os.path.join(self.__wdir, "merge_left.bed3")
+        right_path = os.path.join(self.__wdir, "merge_right.bed3")
+        output_unsorted_path = os.path.join(self.__wdir, "merge_out_unsorted.bed3")
+        output_sorted_path = os.path.join(self.__wdir, "merge_out_sorted.bed3")
+
+        left_bt = BedTable3(enable_sort=False)
+        left_bt.load_from_dataframe(pd.DataFrame({
+            "chrom": ["chr2", "chr2"],
+            "start": [100, 200],
+            "end": [110, 210],
+        }))
+        left_bt.write(left_path)
+
+        right_bt = BedTable3(enable_sort=False)
+        right_bt.load_from_dataframe(pd.DataFrame({
+            "chrom": ["chr1", "chr1"],
+            "start": [50, 300],
+            "end": [60, 310],
+        }))
+        right_bt.write(right_path)
+
+        left_ge = GenomicElements(left_path, "bed3", self.__hg38_genome_path)
+        right_ge = GenomicElements(right_path, "bed3", self.__hg38_genome_path)
+        left_ge.load_region_anno_from_arr("stat", np.array([100, 200]))
+        right_ge.load_region_anno_from_arr("stat", np.array([10, 20]))
+        left_ge.load_region_anno_from_arr("track", np.array([[1] * 10, [2] * 10]))
+        right_ge.load_region_anno_from_arr("track", np.array([[3] * 10, [4] * 10]))
+
+        merged_unsorted = GenomicElements.merge_genomic_elements(
+            left_ge, right_ge, output_unsorted_path, ["stat", "track"], sort_new_ge=False
+        )
+        self.assertEqual(merged_unsorted.get_num_regions(), 4)
+        unsorted_df = merged_unsorted.get_region_bed_table().to_dataframe()
+        self.assertEqual(unsorted_df.iloc[0]["chrom"], "chr2")
+        self.assertEqual(unsorted_df.iloc[2]["chrom"], "chr1")
+        np.testing.assert_array_equal(
+            merged_unsorted.get_anno_arr("stat").reshape(-1,), np.array([100, 200, 10, 20])
+        )
+        np.testing.assert_array_equal(
+            merged_unsorted.get_anno_arr("track")[:, 0], np.array([1, 2, 3, 4])
+        )
+
+        merged_sorted = GenomicElements.merge_genomic_elements(
+            left_ge, right_ge, output_sorted_path, ["stat", "track"], sort_new_ge=True
+        )
+        sorted_df = merged_sorted.get_region_bed_table().to_dataframe()
+        self.assertEqual(sorted_df.iloc[0]["chrom"], "chr1")
+        self.assertEqual(sorted_df.iloc[1]["chrom"], "chr1")
+        self.assertEqual(sorted_df.iloc[2]["chrom"], "chr2")
+        self.assertEqual(sorted_df.iloc[3]["chrom"], "chr2")
+        np.testing.assert_array_equal(
+            merged_sorted.get_anno_arr("stat").reshape(-1,), np.array([10, 20, 100, 200])
+        )
+        np.testing.assert_array_equal(
+            merged_sorted.get_anno_arr("track")[:, 0], np.array([3, 4, 1, 2])
+        )
+
+        # Different fasta paths should fail.
+        right_ge_diff_fasta = GenomicElements(right_path, "bed3", "dummy.fa")
+        with self.assertRaises(ValueError):
+            GenomicElements.merge_genomic_elements(
+                left_ge, right_ge_diff_fasta, os.path.join(self.__wdir, "bad_fasta.bed3"), []
+            )
+
+        # Different region file types should fail.
+        bed6_path = os.path.join(self.__wdir, "merge_other.bed6")
+        with open(bed6_path, "w") as f:
+            f.write("chr1\t10\t20\tname1\t10\t+\n")
+        ge_bed6 = GenomicElements(bed6_path, "bed6", self.__hg38_genome_path)
+        with self.assertRaises(ValueError):
+            GenomicElements.merge_genomic_elements(
+                left_ge, ge_bed6, os.path.join(self.__wdir, "bad_type.bed3"), []
+            )
+

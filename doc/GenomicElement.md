@@ -121,6 +121,15 @@ GenomicElements(region_file_path: str, region_file_type: str, fasta_path: str)
   - Ambiguous nucleotides (Y, R, W, S, K, M, D, V, H, B, X, N) encoded as zeros
   - Order: A, C, G, T
 
+- `merge_genomic_elements(left_ge: GenomicElements, 
+  right_ge: GenomicElements, output_region_path: str, 
+  anno2merge: list[str], 
+  sort_new_ge: bool = True)`
+  - Merge 2 Genomic Elements
+  - Return a Genomic Element object
+  - Merge corresponding annos in output order and load to the new GenomicElement
+  - Write merged region file to `output_region_path`
+
 ## Important Notes
 
 ### Coordinate Convention
