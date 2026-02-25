@@ -127,11 +127,22 @@ class ExogeneousSequences(GeneralElements):
         # Copy filtered annotations
         for anno_name, anno_arr in self._anno_arr_dict.items():
             new_anno_arr = anno_arr[logical]
-            if self.get_anno_type(anno_name) == "track":
+            anno_type = self.get_anno_type(anno_name)
+            if anno_type == "track":
                 new_max_len = int(result_es.get_region_lens().max())
                 if new_anno_arr.shape[1] != new_max_len:
                     new_anno_arr = new_anno_arr[:, :new_max_len]
-            result_es.load_region_anno_from_arr(anno_name, new_anno_arr)
+                new_region_lens = result_es.get_region_lens()
+                track_list = [new_anno_arr[i, :new_region_lens[i]] for i in range(new_anno_arr.shape[0])]
+                result_es.load_region_track_from_list(anno_name, track_list)
+            elif anno_type == "stat":
+                result_es.load_region_stat_from_arr(anno_name, new_anno_arr)
+            elif anno_type == "mask":
+                result_es.load_mask_from_arr(anno_name, new_anno_arr)
+            elif anno_type == "array":
+                result_es.load_region_array_from_arr(anno_name, new_anno_arr)
+            else:
+                raise ValueError(f"Invalid annotation type: {anno_type}")
 
         return result_es
     

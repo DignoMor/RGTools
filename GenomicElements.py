@@ -198,30 +198,54 @@ class GenomicElements(GeneralElements):
                 )
 
             if left_type in ("stat", "mask"):
-                left_arr = left_ge.get_anno_arr(anno_name)
-                right_arr = right_ge.get_anno_arr(anno_name)
+                if left_type == "stat":
+                    left_arr = left_ge.get_stat_arr(anno_name)
+                    right_arr = right_ge.get_stat_arr(anno_name)
+                else:
+                    left_arr = left_ge.get_mask_arr(anno_name)
+                    right_arr = right_ge.get_mask_arr(anno_name)
                 if left_arr.shape[1] != right_arr.shape[1]:
                     raise ValueError(
                         f"Annotation '{anno_name}' dim mismatch: left={left_arr.shape[1]}, right={right_arr.shape[1]}"
                     )
-                merged_list= []
+                merged_list = []
                 for source_table, source_index in merge_index_map:
                     if source_table == 0:
                         merged_list.append(left_arr[source_index])
                     else:
                         merged_list.append(right_arr[source_index])
             elif left_type == "track":
-                left_list = left_ge.get_anno_list(anno_name)
-                right_list = right_ge.get_anno_list(anno_name)
-                max_len = int(result_ge.get_region_lens().max())
+                left_list = left_ge.get_track_list(anno_name)
+                right_list = right_ge.get_track_list(anno_name)
                 merged_list = []
-                for i, (source_table, source_index) in enumerate(merge_index_map):
+                for source_table, source_index in merge_index_map:
                     track = left_list[source_index] if source_table == 0 else right_list[source_index]
                     merged_list.append(track)
+            elif left_type == "array":
+                left_arr = left_ge.get_arr_anno(anno_name)
+                right_arr = right_ge.get_arr_anno(anno_name)
+                if left_arr.shape[1:] != right_arr.shape[1:]:
+                    raise ValueError(
+                        f"Annotation '{anno_name}' array shape mismatch: "
+                        f"left={left_arr.shape[1:]}, right={right_arr.shape[1:]}"
+                    )
+                merged_list = []
+                for source_table, source_index in merge_index_map:
+                    if source_table == 0:
+                        merged_list.append(left_arr[source_index])
+                    else:
+                        merged_list.append(right_arr[source_index])
             else:
                 raise ValueError(f"Unsupported annotation type: {left_type}")
 
-            result_ge.load_region_anno_from_list(anno_name, merged_list)
+            if left_type == "track":
+                result_ge.load_region_track_from_list(anno_name, merged_list)
+            elif left_type == "stat":
+                result_ge.load_region_stat_from_arr(anno_name, np.asarray(merged_list))
+            elif left_type == "mask":
+                result_ge.load_mask_from_arr(anno_name, np.asarray(merged_list))
+            elif left_type == "array":
+                result_ge.load_region_array_from_arr(anno_name, np.asarray(merged_list))
 
         return result_ge
 
@@ -296,11 +320,22 @@ class GenomicElements(GeneralElements):
         
         for anno_name, anno_arr in self._anno_arr_dict.items():
             new_anno_arr = anno_arr[logical]
-            if self.get_anno_type(anno_name) == "track":
+            anno_type = self.get_anno_type(anno_name)
+            if anno_type == "track":
                 new_max_len = int(result_ge.get_region_lens().max())
                 if new_anno_arr.shape[1] != new_max_len:
                     new_anno_arr = new_anno_arr[:, :new_max_len]
-            result_ge.load_region_anno_from_arr(anno_name, new_anno_arr)
+                new_region_lens = result_ge.get_region_lens()
+                track_list = [new_anno_arr[i, :new_region_lens[i]] for i in range(new_anno_arr.shape[0])]
+                result_ge.load_region_track_from_list(anno_name, track_list)
+            elif anno_type == "stat":
+                result_ge.load_region_stat_from_arr(anno_name, new_anno_arr)
+            elif anno_type == "mask":
+                result_ge.load_mask_from_arr(anno_name, new_anno_arr)
+            elif anno_type == "array":
+                result_ge.load_region_array_from_arr(anno_name, new_anno_arr)
+            else:
+                raise ValueError(f"Invalid annotation type: {anno_type}")
 
         return result_ge
     

@@ -70,13 +70,15 @@ class TestExogeneousSequences(unittest.TestCase):
     def test_apply_logical_filter_copies_annotations(self):
         es = ExogeneousSequences(self.__fasta_path)
         stat = np.array([0.1, 0.6, 0.2])
-        track = np.vstack([
-            np.arange(12),
+        track = [
+            np.arange(10),
             np.arange(12) + 10,
-            np.arange(12) + 20,
-        ])
-        es.load_region_anno_from_arr("stat", stat)
-        es.load_region_anno_from_arr("track", track)
+            np.arange(10) + 20,
+        ]
+        arr_anno = np.arange(18).reshape(3, 2, 3)
+        es.load_region_stat_from_arr("stat", stat)
+        es.load_region_track_from_list("track", track)
+        es.load_region_array_from_arr("arr", arr_anno)
 
         mask = np.array([True, False, True], dtype=bool)
         new_fa = os.path.join(self.__wdir, "filtered.fa")
@@ -89,13 +91,15 @@ class TestExogeneousSequences(unittest.TestCase):
         ])
         self.assertEqual(filtered.get_all_region_lens(), [10, 10])
         np.testing.assert_array_equal(
-            filtered.get_anno_arr("stat").reshape(-1,), stat[mask]
+            filtered.get_stat_arr("stat").reshape(-1,), stat[mask]
         )
         self.assertEqual(filtered.get_anno_type("stat"), "stat")
         self.assertEqual(filtered.get_anno_type("track"), "track")
-        self.assertEqual(filtered.get_anno_arr("track").shape, (2, 10))
-        np.testing.assert_array_equal(filtered.get_anno_arr("track")[0], track[0, :10])
-        np.testing.assert_array_equal(filtered.get_anno_arr("track")[1], track[2, :10])
+        filtered_track = filtered.get_track_list("track")
+        self.assertEqual(len(filtered_track), 2)
+        np.testing.assert_array_equal(filtered_track[0], track[0])
+        np.testing.assert_array_equal(filtered_track[1], track[2])
+        np.testing.assert_array_equal(filtered.get_arr_anno("arr"), arr_anno[mask])
 
     def test_write_sequences_to_fasta(self):
         out_fa = os.path.join(self.__wdir, "written.fa")
@@ -108,13 +112,13 @@ class TestExogeneousSequences(unittest.TestCase):
         self.assertEqual([r.id for r in parsed], seq_ids)
         self.assertEqual([str(r.seq) for r in parsed], seqs)
 
-    def test_get_anno_list(self):
+    def test_get_track_list(self):
         es = ExogeneousSequences(self.__fasta_path)
         # Lengths are [10, 12, 10]
         track_list = [np.ones(10), np.zeros(12), np.ones(10) * 2]
         es.load_region_track_from_list("test_track", track_list)
         
-        output_list = es.get_anno_list("test_track")
+        output_list = es.get_track_list("test_track")
         self.assertEqual(len(output_list), 3)
         np.testing.assert_array_equal(output_list[0], track_list[0])
         np.testing.assert_array_equal(output_list[1], track_list[1])

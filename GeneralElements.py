@@ -120,7 +120,7 @@ class GeneralElements(abc.ABC):
         '''
         return self.get_region_bed_table().__len__()
 
-    def load_region_anno_from_npy(self, anno_name, npy_path):
+    def load_region_anno_from_npy(self, anno_name, npy_path, anno_type="array"):
         '''
         Load annotation for each element in the region file. 
         
@@ -146,7 +146,31 @@ class GeneralElements(abc.ABC):
             # .npy file - data is already the array
             anno_arr = data
         
-        self.load_region_anno_from_arr(anno_name, anno_arr)
+        if anno_type == "track":
+            anno_arr = np.asarray(anno_arr)
+            if len(anno_arr.shape) != 2:
+                raise ValueError(f"Track annotation must be 2D; got shape {anno_arr.shape}")
+            if anno_arr.shape[0] != self.get_num_regions():
+                raise ValueError(
+                    f"Track annotation shape {anno_arr.shape} does not match number of regions {self.get_num_regions()}"
+                )
+            max_len = int(self.get_region_lens().max())
+            if anno_arr.shape[1] != max_len:
+                raise ValueError(f"Track annotation width {anno_arr.shape[1]} must equal max region length {max_len}")
+            self._anno_arr_dict[anno_name] = anno_arr
+            self._anno_length_dict[anno_name] = max_len
+            self._anno_type_dict[anno_name] = "track"
+        elif anno_type == "stat":
+            self.load_region_stat_from_arr(anno_name, anno_arr)
+        elif anno_type == "mask":
+            self.load_mask_from_arr(anno_name, anno_arr)
+        elif anno_type == "array":
+            self.load_region_array_from_arr(anno_name, anno_arr)
+        else:
+            raise ValueError(
+                f"Unsupported anno_type '{anno_type}'. "
+                "Use one of: 'track', 'stat', 'mask', 'array'."
+            )
 
     def load_region_track_from_list(self, anno_name, anno_list):
         '''
@@ -170,7 +194,9 @@ class GeneralElements(abc.ABC):
         for i, anno in enumerate(anno_list):
             anno_arr[i, :len(anno)] = anno
             
-        self.load_region_anno_from_arr(anno_name, anno_arr)
+        self._anno_arr_dict[anno_name] = anno_arr
+        self._anno_length_dict[anno_name] = max_len
+        self._anno_type_dict[anno_name] = "track"
 
     def load_region_stat_from_arr(self, anno_name, anno_arr):
         '''
@@ -192,7 +218,9 @@ class GeneralElements(abc.ABC):
         else:
             raise ValueError(f"Stat array must be 1D or 2D with shape (N, 1); got shape {anno_arr.shape}")
         
-        self.load_region_anno_from_arr(anno_name, anno_arr)
+        self._anno_arr_dict[anno_name] = anno_arr
+        self._anno_length_dict[anno_name] = 1
+        self._anno_type_dict[anno_name] = "stat"
 
     def load_mask_from_arr(self, anno_name, anno_arr):
         '''
@@ -214,60 +242,31 @@ class GeneralElements(abc.ABC):
         else:
             raise ValueError(f"Mask array must be 1D or 2D with shape (N, 1); got shape {anno_arr.shape}")
         
-        self.load_region_anno_from_arr(anno_name, anno_arr)
+        self._anno_arr_dict[anno_name] = anno_arr
+        self._anno_length_dict[anno_name] = 1
+        self._anno_type_dict[anno_name] = "mask"
 
-    def load_region_anno_from_arr(self, anno_name, anno_arr):
+    def load_region_array_from_arr(self, anno_name, anno_arr):
         '''
-        Load annotation for each element in the region file. 
-        
+        Load per-region array annotation from a numpy array.
+
         Keyword arguments:
         - anno_name: Name of the annotation.
-        - anno_arr: np.Array, Annotation array.
-
-        Returns:
-        None
+        - anno_arr: numpy array with shape (N, ...).
         '''
-        anno_shape = anno_arr.shape
-
-        if anno_shape[0] != self.get_num_regions():
-            raise ValueError(f"Annotation shape {anno_shape} does not match the number of regions: {self.get_num_regions()}")
-        
-        # Normalize and classify stats/masks: accept (N,) or (N,1), store as (N,1)
-        if len(anno_shape) == 1:
-            anno_arr = np.asarray(anno_arr).reshape(-1, 1)
-            # Detect boolean arrays as masks
-            if np.issubdtype(anno_arr.dtype, bool):
-                anno_type = "mask"
-            else:
-                anno_type = "stat"
-            self._anno_arr_dict[anno_name] = anno_arr
-            self._anno_length_dict[anno_name] = 1
-            self._anno_type_dict[anno_name] = anno_type
-            return
-
-        if len(anno_shape) != 2:
-            raise ValueError(f"Annotation array must be 1D or 2D; got shape {anno_shape}")
-
-        region_lens = self.get_region_lens()
-        max_len = int(region_lens.max())
-        if anno_shape[1] == 1:
-            # Treat (N,1) as stat or mask
-            # Detect boolean arrays as masks
-            if np.issubdtype(anno_arr.dtype, bool):
-                anno_type = "mask"
-            else:
-                anno_type = "stat"
-            self._anno_arr_dict[anno_name] = anno_arr
-            self._anno_length_dict[anno_name] = 1
-            self._anno_type_dict[anno_name] = anno_type
-            return
-
-        if anno_shape[1] != max_len:
-            raise ValueError(f"Track annotation width {anno_shape[1]} must equal max region length {max_len}")
+        anno_arr = np.asarray(anno_arr)
+        if len(anno_arr.shape) < 2:
+            raise ValueError(
+                f"Array annotation must have at least 2 dimensions (N, ...); got shape {anno_arr.shape}"
+            )
+        if anno_arr.shape[0] != self.get_num_regions():
+            raise ValueError(
+                f"Array annotation shape {anno_arr.shape} does not match number of regions {self.get_num_regions()}"
+            )
 
         self._anno_arr_dict[anno_name] = anno_arr
-        self._anno_length_dict[anno_name] = max_len
-        self._anno_type_dict[anno_name] = "track"
+        self._anno_length_dict[anno_name] = tuple(anno_arr.shape[1:])
+        self._anno_type_dict[anno_name] = "array"
 
     def get_anno_dim(self, anno_name):
         '''
@@ -283,54 +282,83 @@ class GeneralElements(abc.ABC):
             raise ValueError(f"Annotation '{anno_name}' not found. Available annotations: {list(self._anno_length_dict.keys())}")
         return self._anno_length_dict[anno_name]
 
-    def get_anno_arr(self, anno_name):
-        '''
-        Return the annotation array.
-
-        Keyword arguments:
-        - anno_name: Name of the annotation.
-
-        Return:
-        - anno_arr: np.Array, Annotation array.
-        '''
-        if anno_name not in self._anno_arr_dict:
-            raise ValueError(f"Annotation '{anno_name}' not found. Available annotations: {list(self._anno_arr_dict.keys())}")
-        return self._anno_arr_dict[anno_name]
-
     def get_anno_type(self, anno_name):
         '''
-        Return the annotation type: "stat", "track", or "mask".
+        Return the annotation type: "stat", "track", "mask", or "array".
         '''
         return self._anno_type_dict[anno_name]
 
-    def get_anno_list(self, anno_name):
+    def get_track_list(self, anno_name):
         '''
-        Return a list of signal tracks in np.ndarray.
-        Returned arrays will be sliced to element length.
+        Return a list of track annotations sliced to each region length.
         '''
-        anno_arr = self.get_anno_arr(anno_name)
-        anno_type = self.get_anno_type(anno_name)
-        if anno_type == "stat" or anno_type == "mask":
-            return [anno_arr[i] for i in range(self.get_num_regions())]
-        
+        if self.get_anno_type(anno_name) != "track":
+            raise ValueError(
+                f"Annotation '{anno_name}' is not a track. Type={self.get_anno_type(anno_name)}"
+            )
+        anno_arr = self._anno_arr_dict[anno_name]
         region_lens = self.get_region_lens()
         return [anno_arr[i, :region_lens[i]] for i in range(self.get_num_regions())]
 
-    def get_region_anno_by_index(self, anno_name, index):
+    def get_stat_arr(self, anno_name):
         '''
-        Return the annotation for a specific region index.
-        If the annotation is length-homogeneous padding, slice to the region length.
+        Return stat annotation array with shape (N, 1).
         '''
-        anno_arr = self.get_anno_arr(anno_name)
-        anno_type = self.get_anno_type(anno_name)   
-        if anno_type == "stat" or anno_type == "mask":
-            return anno_arr[index, 0]
+        if self.get_anno_type(anno_name) != "stat":
+            raise ValueError(
+                f"Annotation '{anno_name}' is not a stat. Type={self.get_anno_type(anno_name)}"
+            )
+        return self._anno_arr_dict[anno_name]
 
-        if anno_type == "track":
-            region_len = int(self.get_region_lens()[index])
-            return anno_arr[index, :region_len]
-        else:
-            raise ValueError(f"Invalid annotation type: {anno_type}")
+    def get_mask_arr(self, anno_name):
+        '''
+        Return mask annotation array with shape (N, 1).
+        '''
+        if self.get_anno_type(anno_name) != "mask":
+            raise ValueError(
+                f"Annotation '{anno_name}' is not a mask. Type={self.get_anno_type(anno_name)}"
+            )
+        return self._anno_arr_dict[anno_name]
+
+    def get_arr_anno(self, anno_name):
+        '''
+        Return array annotation with shape (N, ...).
+        '''
+        if self.get_anno_type(anno_name) != "array":
+            raise ValueError(
+                f"Annotation '{anno_name}' is not an array annotation. Type={self.get_anno_type(anno_name)}"
+            )
+        return self._anno_arr_dict[anno_name]
+
+    def get_region_track_by_index(self, anno_name, index):
+        if self.get_anno_type(anno_name) != "track":
+            raise ValueError(
+                f"Annotation '{anno_name}' is not a track. Type={self.get_anno_type(anno_name)}"
+            )
+        anno_arr = self._anno_arr_dict[anno_name]
+        region_len = int(self.get_region_lens()[index])
+        return anno_arr[index, :region_len]
+
+    def get_region_stat_by_index(self, anno_name, index):
+        if self.get_anno_type(anno_name) != "stat":
+            raise ValueError(
+                f"Annotation '{anno_name}' is not a stat. Type={self.get_anno_type(anno_name)}"
+            )
+        return self._anno_arr_dict[anno_name][index, 0]
+
+    def get_region_mask_by_index(self, anno_name, index):
+        if self.get_anno_type(anno_name) != "mask":
+            raise ValueError(
+                f"Annotation '{anno_name}' is not a mask. Type={self.get_anno_type(anno_name)}"
+            )
+        return self._anno_arr_dict[anno_name][index, 0]
+
+    def get_region_array_by_index(self, anno_name, index):
+        if self.get_anno_type(anno_name) != "array":
+            raise ValueError(
+                f"Annotation '{anno_name}' is not an array annotation. Type={self.get_anno_type(anno_name)}"
+            )
+        return self._anno_arr_dict[anno_name][index]
     
     def save_anno_npy(self, anno_name, npy_path):
         '''
@@ -343,13 +371,17 @@ class GeneralElements(abc.ABC):
         Returns:
         None
         '''
-        np.save(npy_path, self.get_anno_arr(anno_name))
+        if anno_name not in self._anno_arr_dict:
+            raise ValueError(f"Annotation '{anno_name}' not found. Available annotations: {list(self._anno_arr_dict.keys())}")
+        np.save(npy_path, self._anno_arr_dict[anno_name])
     
     def save_anno_npz(self, anno_name, npz_path):
         '''
         Save annotation to a npz file.
         '''
-        np.savez_compressed(npz_path, self.get_anno_arr(anno_name))
+        if anno_name not in self._anno_arr_dict:
+            raise ValueError(f"Annotation '{anno_name}' not found. Available annotations: {list(self._anno_arr_dict.keys())}")
+        np.savez_compressed(npz_path, self._anno_arr_dict[anno_name])
 
     @staticmethod
     def one_hot_encoding(seq: str):
