@@ -40,32 +40,59 @@ Abstract base class for `GenomicElements` and `ExogeneousSequences`. Provides sh
   - Returns an array of per-region lengths (`end - start`).
 
 - `get_anno_type(anno_name: str) -> str`: 
-  - Return the type of the annotation (track, stat, or mask)
+  - Return the type of the annotation (`track`, `stat`, `mask`, or `array`).
 
-- `get_region_lens() -> np.ndarray`
-  - Return the lengths of each region as an array.
+- `get_anno_dim(anno_name: str) -> int | tuple[int, ...]`
+  - Return stored annotation dimension metadata.
+  - `track`: `max_region_len`; `stat`/`mask`: `1`; `array`: trailing shape tuple.
 
-- `get_anno_list(anno_name: str) -> list[np.ndarray]`
-  - Return a list of signal tracks in np.ndarray.
-  - For homogeneous elements, use `get_anno_arr` for better efficiency.
-  - Returned arrays will be sliced to element length.
+The following methods allow retrieval of all regions' annotations.
 
-- `get_region_anno_by_index(anno_name: str, index: int)`
-  - Returns annotation for a specific region.
-  - For padded annotations, slices to the region’s length.
+- `get_track_list(anno_name: str) -> list[np.ndarray]`
+  - Return track annotations as a list.
+  - Each returned track has shape `(region_length,)`.
+
+- `get_stat_arr(anno_name: str) -> np.ndarray`
+  - Return stat annotation array with shape `(N, 1)`.
+
+- `get_mask_arr(anno_name: str) -> np.ndarray`
+  - Return mask annotation array with shape `(N, 1)`.
+
+- `get_arr_anno(anno_name: str) -> np.ndarray`
+  - Return array annotation with shape `(N, ...)`.
+
+The following methods allow index-based retrieval of 
+one region's annotation.
+
+- `get_region_track_by_index(anno_name: str, index: int) -> np.ndarray`
+  - Return track annotation for a specific region.
+  - Return shape: `(region_size_index,)`.
+
+- `get_region_stat_by_index(anno_name: str, index: int) -> numerical`
+  - Return stat annotation for a specific region.
+
+- `get_region_mask_by_index(anno_name: str, index: int) -> bool`
+  - Return mask annotation for a specific region.
+
+- `get_region_array_by_index(anno_name: str, index: int) -> np.ndarray`
+  - Return array annotation for a specific region.
 
 **Essential Setter Methods:**
 
-- `load_region_track_from_list(anno_name: str, anno_list: list[np.ndarray]) -> None`
+- `load_region_track_from_list(anno_name: str, anno_list: Iterable[np.ndarray]) -> None`
   - Loads per-region annotation **track** from a python list.
-  - useful when loading annotations for non-length-homogeneous elements
   - `anno_list[i]` must have the same length as the ith element
 
-- `load_region_stat_from_arr(anno_name: str, anno_list: list) -> None`
+- `load_region_stat_from_arr(anno_name: str, anno_arr: np.ndarray) -> None`
   - Loads per region **stat** from a numpy array.
 
-- `load_mask_from_arr(anno_name:str, anno_list: list) -> None`
-  - Loads a region mask from a numpy array.
+- `load_mask_from_arr(anno_name:str, anno_arr: np.ndarray) -> None`
+  - Loads a region **mask** from a numpy array.
+
+- `load_region_array_from_arr(anno_name: str, anno_arr: np.ndarray) -> None`
+  - Load region **array** annotations.
+  - `anno_arr` must have shape `(n_region, anno_shape...)`.
+  - For example, one-hot array annotation has shape `(n_region, region_length, 4)`.
 
 **Essential IO Methods:**
 
@@ -75,22 +102,11 @@ Abstract base class for `GenomicElements` and `ExogeneousSequences`. Provides sh
 - `save_anno_npz(anno_name: str, npz_path: str) -> None`
   - Saves annotation to compressed `.npz`.
 
-**Methods needs extra caution when used with non-length-homogeneous Elements**
-
-- `get_anno_arr(anno_name: str) -> np.ndarray`
-  - Returns the stored annotation array.
-
-- `load_region_anno_from_npy(anno_name: str, npy_path: str) -> None`
+- `load_region_anno_from_npy(anno_name: str, npy_path: str, anno_type: str = "array") -> None`
   - Loads per-region annotation from `.npy` **or** single-array `.npz`.
+  - When loading tracks, set `anno_type="track"` so track semantics are preserved.
 
 **Methods restricted to length-homogeneous Elements**
-
-- `load_region_anno_from_arr(anno_name: str, anno_arr: np.ndarray) -> None`
-  - Loads per-region annotation from a numpy array.
-  - `anno_arr.shape[0]` must equal `get_num_regions()`.
-  - Stats accept `(N,)` or `(N, 1)` and are stored as `(N, 1)`.
-  - Track annotations accept only `(N, L), L = max(region length)`. A Value error will be 
-    raised otherwise.
 
 - `get_all_region_one_hot() -> np.ndarray`
   - Returns array of shape `(num_regions, region_length, 4)`.
@@ -119,37 +135,52 @@ seqs = ge.get_all_region_seqs()
 one_hot = ge.get_all_region_one_hot()  # shape: (N, L, 4)
 
 import numpy as np
-anno = np.random.randn(ge.get_num_regions(), 3)
-ge.load_region_anno_from_arr("my_anno", anno)
-ge.save_anno_npz("my_anno", "my_anno.npz")
+stat = np.random.randn(ge.get_num_regions())
+ge.load_region_stat_from_arr("my_stat", stat)
+ge.save_anno_npz("my_stat", "my_stat.npz")
 
-mask = ge.get_anno_arr("my_anno")[:, 0] > 0
+mask = ge.get_stat_arr("my_stat")[:, 0] > 0
 filtered = ge.apply_logical_filter(mask, "filtered.bed3")
 print(filtered.get_num_regions())
 ```
 
 ## Important Notes
 
-### Lengh-homogeneous and non-length-homogeneous regions
+### Length-homogeneous and non-length-homogeneous regions
 
-A set of Elements are lengh-homogeneous if everyone of them 
+A set of Elements are length-homogeneous if every one of them 
 are of the same length. Otherwise it is non-length-homogeneous.
 
-- 2D annotations are padded with zeros to the longest region length.
-- `get_anno_arr` returns the padded array; `get_region_anno_by_index` slices per region length.
+- 2D track annotations are padded with zeros to the longest region length.
+- `get_track_list` and `get_region_track_by_index` slice track values to each region length.
 - `get_all_region_one_hot` still requires length-homogeneous regions.
 
 ### Annotation types
 
-There are 3 types of annotations
+There are 4 annotation types:
 
-- **track**: store signal tracks for each element. The second dimension is the element length.
-  - for length-homogeneous elements, the second dimension is the length.
-  - for non-length-homogeneous elements, the second dimension varies by elements. 
-    However, to store the track as np array we pad them to match the longest 
-    element and slice the track at the time of retrival.
-- **stat**: store statistics for each element, the second dimension is of size 1
-- **mask**: Store boolean value for each element, same shape as a **stat**.
+- **track**: signal track per element.
+  - Setter: `load_region_track_from_list(anno_name, anno_list)`
+  - Getter(s): `get_track_list(anno_name)`, `get_region_track_by_index(anno_name, index)`
+  - Stored as shape `(N, max_region_len)` with zero-padding for non-length-homogeneous regions.
+- **stat**: scalar statistic per element.
+  - Setter: `load_region_stat_from_arr(anno_name, anno_arr)`
+  - Getter(s): `get_stat_arr(anno_name)`, `get_region_stat_by_index(anno_name, index)`
+  - Stored as shape `(N, 1)`.
+- **mask**: boolean scalar per element.
+  - Setter: `load_mask_from_arr(anno_name, anno_arr)`
+  - Getter(s): `get_mask_arr(anno_name)`, `get_region_mask_by_index(anno_name, index)`
+  - Stored as shape `(N, 1)`.
+- **array**: fixed-shape array payload per element.
+  - Setter: `load_region_array_from_arr(anno_name, anno_arr)`
+  - Getter(s): `get_arr_anno(anno_name)`, `get_region_array_by_index(anno_name, index)`
+  - Stored as shape `(N, ...)` where all elements share the same trailing shape.
+
+
+Interally, all annotations are stored as numpy array. To avoid 
+array dimension issues with non-length-homogeneous elements, 
+tracks are padded with zeros to the maximum region size before 
+storing.
 
 ### Other Notes 
 
