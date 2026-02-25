@@ -102,7 +102,7 @@ class GenomicElements(GeneralElements):
 
     @staticmethod
     def BedTableTREBed(enable_sort=True):
-        bt = BedTable3Plus(extra_column_names=["name", "fwsTSS", "revTSS"], 
+        bt = BedTable3Plus(extra_column_names=["name", "fwdTSS", "revTSS"], 
                            extra_column_dtype=[str, int, int], 
                            enable_sort=enable_sort,
                            )

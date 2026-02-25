@@ -212,6 +212,7 @@ class TestMemeMotif(unittest.TestCase):
                                                       strand="+",
                                                       )
 
+        motif_len = meme.get_motif_length("crp")
         self.assertEqual(score_arr_rev[-motif_len], score_arr_rc_fwd[0])
     
     def test_search_one_motif_both_strands(self):
