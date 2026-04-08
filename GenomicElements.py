@@ -3,8 +3,6 @@ import os
 
 import numpy as np
 
-from Bio import SeqIO
-
 from .BedTable import BedTable3, BedTable6, BedTable6Plus, BedTable3Plus
 from .GeneralElements import GeneralElements
 
@@ -269,31 +267,24 @@ class GenomicElements(GeneralElements):
             with open(fasta_path, "a") as handle:
                 handle.write(f">{region['chrom']}:{region['start']}-{region['end']}\n{seq}\n")
 
+    def get_all_region_seqs(self):
+        '''
+        Return sequences for all regions in the region table.
+        '''
+        out_seqs = []
+        for region in self.get_region_bed_table().iter_regions():
+            seq = self.get_region_seq(region["chrom"], region["start"], region["end"], index_genome=True)
+            if seq is None:
+                raise ValueError(f"Chromosome {region['chrom']} not found in the genome file.")
+            out_seqs.append(seq)
+        return out_seqs
+
     def get_region_bed_table(self):
         '''
         Return a bed table object for the region file.
         '''
         return self._region_bt.copy()
     
-    def get_region_seq(self, chrom: str, start: int, end: int) -> str:
-        '''
-        Return the sequence of a given region. 
-        The coordinates are of bed convention.
-        
-        Keyword arguments:
-        - chrom: Chromosome name.
-        - start: Start coordinate.
-        - end: End coordinate.
-        
-        Returns:
-        - seq: Sequence of the region, or None if chromosome not found.
-        '''
-        with open(self.fasta_path, "r") as handle:
-            for record in SeqIO.parse(handle, "fasta"):
-                if record.id == chrom:
-                    return str(record.seq[start:end])  # Convert to 0-based index
-        return None
-
     def apply_logical_filter(self, logical, new_region_file_path):
         '''
         Apply logical filter to the regions.

@@ -24,6 +24,9 @@ Abstract base class for `GenomicElements` and `ExogeneousSequences`. Provides sh
 **Abstract Methods:**
 - `get_region_bed_table() -> BedTable`
   - Returns the underlying bed table object for the subclass.
+- `get_all_region_seqs() -> list[str]`
+  - Returns sequences for all regions.
+  - Implemented by each subclass to choose the best strategy for its data model.
 - `apply_logical_filter(logical: np.ndarray, new_path: str) -> GeneralElements`
   - Filters regions using a **mask** and writes the filtered regions to `new_path`.
 
@@ -32,9 +35,12 @@ Abstract base class for `GenomicElements` and `ExogeneousSequences`. Provides sh
 - `get_num_regions() -> int`
   - Returns the number of regions (delegates to the bed table length).
 
-- `get_all_region_seqs() -> list[str]`
-  - Loads the entire FASTA into memory and returns sequences for all regions.
-  - Raises if a chromosome in the bed table is missing from the FASTA.
+- `get_region_seq(chrom: str, start: int, end: int, index_genome: bool = True) -> str | None`
+  - Returns the sequence for a single BED-like interval.
+  - Coordinates follow BED convention (0-based, half-open).
+  - If `index_genome=True`, uses indexed FASTA lookup (recommended for repeated random access).
+  - If `index_genome=False`, scans FASTA records until the matching chromosome is found.
+  - Returns `None` if `chrom` is not found in the FASTA.
 
 - `get_region_lens() -> np.ndarray`
   - Returns an array of per-region lengths (`end - start`).
@@ -130,7 +136,7 @@ ge = GenomicElements(
     fasta_path="hg38.fa",
 )
 
-# Base-class helpers
+# Subclass implementation
 seqs = ge.get_all_region_seqs()
 one_hot = ge.get_all_region_one_hot()  # shape: (N, L, 4)
 
@@ -184,7 +190,11 @@ storing.
 
 ### Other Notes 
 
-- `get_all_region_seqs()` loads the FASTA into memory; use when the genome fits in memory.
+- `get_region_seq(..., index_genome=True)` uses indexed FASTA access and avoids loading the whole FASTA into memory.
+- `get_region_seq(..., index_genome=False)` scans the FASTA and is typically slower for repeated calls.
+- `get_all_region_seqs()` is subclass-specific:
+  - `GenomicElements`: typically genome-backed extraction.
+  - `ExogeneousSequences`: returns already-loaded sequence strings.
 - `get_all_region_one_hot()` additionally materializes a `(N, L, 4)` array; ensure consistent region lengths first.
 - `.npz` loading via `load_region_anno_from_npy()` only works when the file has exactly one array; otherwise a `ValueError` lists available keys.
 - One-hot encoding treats ambiguous nucleotides as zeros.

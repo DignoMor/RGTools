@@ -40,10 +40,9 @@ GenomicElements(region_file_path: str, region_file_type: str, fasta_path: str)
   - Returns a copy of the underlying bed table object (e.g., `BedTable3`, `BedTable6Plus`).
   - Can be used to iterate over regions or perform bed table operations.
 
-- `get_region_seq(chrom: str, start: int, end: int) -> str | None`
-  - Returns the reference sequence for the given region (BED coordinates).
-  - Coordinates follow BED convention (0-based, half-open).
-  - Returns `None` if `chrom` is not found in the FASTA.
+- `get_all_region_seqs() -> list[str]`
+  - `GenomicElements` implementation of the abstract base method.
+  - Returns sequences for all regions in the region table.
 
 - `export_exogeneous_sequences(fasta_path: str) -> None`
   - Writes each region as a FASTA record to `fasta_path`.
@@ -56,7 +55,7 @@ GenomicElements(region_file_path: str, region_file_type: str, fasta_path: str)
 
 **Inherited Helpers (see `GeneralElements.md`):**
 - `get_num_regions()`
-- `get_all_region_seqs()`
+- `get_region_seq(chrom, start, end, index_genome=True)`
 - `get_all_region_one_hot()`
 - Annotation loaders/savers (`load_region_anno_from_npy`, `load_region_track_from_list`, `load_region_stat_from_arr`, `load_mask_from_arr`, `load_region_array_from_arr`, `save_anno_npy`, `save_anno_npz`)
 - Annotation accessors (`get_anno_type`, `get_track_list`, `get_stat_arr`, `get_mask_arr`, `get_arr_anno`, `get_region_track_by_index`, `get_region_stat_by_index`, `get_region_mask_by_index`, `get_region_array_by_index`, `get_region_lens`)
@@ -98,7 +97,7 @@ print(ge.get_num_regions())  # inherited from GeneralElements
 
 ### Get a single region sequence
 ```python
-seq = ge.get_region_seq("chr1", 100_000, 100_050)  # BED coords: 0-based, end-exclusive
+seq = ge.get_region_seq("chr1", 100_000, 100_050, index_genome=True)  # BED coords: 0-based, end-exclusive
 if seq is None:
     raise ValueError("chrom not found in FASTA")
 print(seq)
@@ -127,8 +126,10 @@ print(filtered.get_num_regions())
 `chrom` values in your region file must match FASTA record IDs (e.g., `chr1` vs `1`).
 
 ### Memory Considerations
-- `get_all_region_seqs()` and `get_all_region_one_hot()` load the whole genome into memory.
-- `get_region_seq()` scans the FASTA until it finds the matching record.
+- `get_all_region_seqs()` implementation may use substantial memory depending on genome size.
+- `get_all_region_one_hot()` materializes a dense `(N, L, 4)` array and can be memory-intensive.
+- `get_region_seq(..., index_genome=True)` uses indexed FASTA lookup (best for repeated random access).
+- `get_region_seq(..., index_genome=False)` scans FASTA records and is slower for repeated queries.
 - For large genomes or many regions, use iterative access when possible.
 
 ### Annotation Shape Rules (see `GeneralElements.md`)

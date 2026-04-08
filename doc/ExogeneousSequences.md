@@ -32,7 +32,8 @@ ExogeneousSequences(fasta_path: str)
   - Returns sequence identifiers.
 
 - `get_all_region_seqs() -> list[str]`
-  - Returns all sequences as strings.
+  - `ExogeneousSequences` implementation of the abstract base method.
+  - Returns all sequences as strings already loaded in memory.
 
 - `get_all_region_lens() -> list[int]`
   - Returns lengths of all sequences.
@@ -49,6 +50,7 @@ ExogeneousSequences(fasta_path: str)
 
 **Inherited Helpers (see `GeneralElements.md`):**
 - `get_num_regions()`
+- `get_region_seq(chrom, start, end, index_genome=True)`
 - Annotation loaders/savers (`load_region_anno_from_npy`, `load_region_track_from_list`, `load_region_stat_from_arr`, `load_mask_from_arr`, `load_region_array_from_arr`, `save_anno_npy`, `save_anno_npz`)
 - Annotation accessors (`get_anno_dim`, `get_anno_type`, `get_track_list`, `get_stat_arr`, `get_mask_arr`, `get_arr_anno`, `get_region_track_by_index`, `get_region_stat_by_index`, `get_region_mask_by_index`, `get_region_array_by_index`, `get_region_lens`)
 - `get_all_region_one_hot()` (requires length-homogeneous sequences)
@@ -86,6 +88,7 @@ print(filtered.get_anno_type("gc"))  # "stat"
 ## Important Notes
 
 - Sequences are read into memory on init; suitable for small/medium FASTA sets.
+- `get_all_region_seqs()` is lightweight here because sequences are cached in `sequence_df`.
 - `region_file_path` is intentionally unsupported for this class.
 - Annotation shape rules (same as `GeneralElements`):
   - Stats: accept `(N,)` or `(N, 1)` and are stored as `(N, 1)`.

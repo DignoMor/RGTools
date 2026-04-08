@@ -22,6 +22,7 @@ class GeneralElements(abc.ABC):
         self._anno_arr_dict = {}
         self._anno_length_dict = {}
         self._anno_type_dict = {}
+        self._genome_index = None
 
     @property
     @abc.abstractmethod
@@ -58,29 +59,62 @@ class GeneralElements(abc.ABC):
         '''
         pass
 
+    @abc.abstractmethod
     def get_all_region_seqs(self):
         '''
         Get the sequences for all regions.
-        This function reads the genome file to memory.
-        
+        Must be implemented by subclasses to choose an appropriate strategy.
+
         Returns:
         - A list of strings of length region_length
         '''
-        # get chrom name to seq dict
-        chrom_seq_dict = {}
+        pass
+
+    def _get_genome_index(self):
+        if self._genome_index is None:
+            self._genome_index = SeqIO.index(self.fasta_path, "fasta")
+        return self._genome_index
+
+    def close(self):
+        '''
+        Close cached resources held by this instance.
+        '''
+        if self._genome_index is not None:
+            self._genome_index.close()
+            self._genome_index = None
+
+    def __del__(self):
+        # Best-effort cleanup for cached FASTA index handles.
+        try:
+            self.close()
+        except Exception:
+            pass
+
+    def get_region_seq(self, chrom: str, start: int, end: int, index_genome: bool = True):
+        '''
+        Return the sequence of a given region.
+        The coordinates are of bed convention.
+
+        Keyword arguments:
+        - chrom: Chromosome name.
+        - start: Start coordinate.
+        - end: End coordinate.
+        - index_genome: Whether to use indexed access to the fasta file.
+
+        Returns:
+        - seq: Sequence of the region, or None if chromosome not found.
+        '''
+        if index_genome:
+            genome_index = self._get_genome_index()
+            if chrom in genome_index:
+                return str(genome_index[chrom].seq[start:end])  # Convert to 0-based index
+            return None
+
         with open(self.fasta_path, "r") as handle:
             for record in SeqIO.parse(handle, "fasta"):
-                chrom_seq_dict[record.id] = str(record.seq)
-
-        out_seqs = []
-
-        for i, region in enumerate(self.get_region_bed_table().iter_regions()):
-            if not region["chrom"] in chrom_seq_dict:
-                raise ValueError(f"Chromosome {region['chrom']} not found in the genome file.")
-            seq = chrom_seq_dict[region["chrom"]][region["start"]:region["end"]]
-            out_seqs.append(seq)
-        
-        return out_seqs
+                if record.id == chrom:
+                    return str(record.seq[start:end])  # Convert to 0-based index
+        return None
 
     def get_region_lens(self):
         '''
