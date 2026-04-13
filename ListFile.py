@@ -19,6 +19,27 @@ class ListFile:
         self._contents = []
         self._filter_empty_lines = filter_empty_lines
 
+    @staticmethod
+    def write_list_to_file(contents, file_path):
+        '''
+        Write a python list to a list file (one item per line).
+
+        Keyword arguments:
+        - contents: A list-like object containing values to write.
+        - file_path: Path to output list file.
+                     If file_path is "-" or "stdout", write to stdout.
+        '''
+        if file_path == "-" or file_path == "stdout":
+            file_handle = sys.stdout
+        else:
+            file_handle = open(file_path, 'w')
+
+        for item in contents:
+            file_handle.write(f"{item}\n")
+
+        if file_path != "-" and file_path != "stdout":
+            file_handle.close()
+
     def read_file(self, file_path):
         '''
         Read a list file.

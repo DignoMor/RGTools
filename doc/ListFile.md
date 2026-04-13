@@ -20,6 +20,7 @@ ListFile(filter_empty_lines=True)
 **Methods:**
 
 - **`read_file(file_path)`**: Load items from a file. Supports `stdin`.
+- **`write_list_to_file(contents, file_path)`**: Static helper to write one item per line. Supports `stdout`.
 - **`get_contents(dtype="str")`**: Returns the items as a numpy array. 
 - **`get_num_lines()`**: Returns the number of items loaded.
 
@@ -35,4 +36,11 @@ print(f"Loaded {lf.get_num_lines()} genes.")
 genes = lf.get_contents()
 for gene in genes:
     print(gene)
+```
+
+```python
+from RGTools.ListFile import ListFile
+
+genes = ["GeneA", "GeneB", "GeneC"]
+ListFile.write_list_to_file(genes, "genes.txt")
 ```
