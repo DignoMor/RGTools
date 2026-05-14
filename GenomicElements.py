@@ -297,6 +297,10 @@ class GenomicElements(GeneralElements):
         - a new GenomicElements object with the filtered regions.
         '''
         logical = np.asarray(logical)
+        if logical.dtype != np.bool_:
+            raise ValueError(f"Logical array must have boolean dtype; got dtype {logical.dtype}")
+        if logical.ndim != 1:
+            raise ValueError(f"Logical array must be 1D; got shape {logical.shape}")
         num_regions = self.get_num_regions()
         if len(logical) != num_regions:
             raise ValueError(f"Logical array length ({len(logical)}) does not match number of regions ({num_regions})")

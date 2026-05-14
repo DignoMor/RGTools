@@ -296,6 +296,12 @@ class TestGenomicElements(unittest.TestCase):
         np.testing.assert_array_equal(output_track_list[0], np.array([0,1,2,3]))
         np.testing.assert_array_equal(output_track_list[1], np.array([8,9,10,11]))
 
+    def test_apply_logical_filter_requires_boolean_dtype(self):
+        ge = self._init_GenomicElements()
+        with self.assertRaises(ValueError) as context:
+            ge.apply_logical_filter(np.array([1, 0, 1, 0]), os.path.join(self.__wdir, "bad_filter.bed3"))
+        self.assertIn("boolean dtype", str(context.exception))
+
     def test_load_region_stat_from_arr(self):
         ge = self._init_GenomicElements()
         # Test loading stats from a 1D numpy array
@@ -367,12 +373,10 @@ class TestGenomicElements(unittest.TestCase):
             ge.load_mask_from_arr("bad_mask2", np.array([[True, False], [True, False]]))
         self.assertIn("does not match number of regions", str(context.exception))
         
-        # Test that non-boolean values are converted to bool
-        mask_arr_int = np.array([1, 0, 1, 0])
-        ge.load_mask_from_arr("mask_arr_int", mask_arr_int)
-        self.assertEqual(ge.get_mask_arr("mask_arr_int").dtype, bool)
-        np.testing.assert_array_equal(ge.get_mask_arr("mask_arr_int").reshape(-1,), 
-                                      np.array([True, False, True, False]))
+        # Non-boolean dtypes should be rejected explicitly.
+        with self.assertRaises(ValueError) as context:
+            ge.load_mask_from_arr("mask_arr_int", np.array([1, 0, 1, 0]))
+        self.assertIn("boolean dtype", str(context.exception))
 
     def test_merge_genomic_elements(self):
         left_path = os.path.join(self.__wdir, "merge_left.bed3")

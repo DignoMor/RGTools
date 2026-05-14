@@ -172,6 +172,12 @@ class TestBedTable3(TestBedTable):
 
         self.assertArrayEqual(filtered_bed_table.to_dataframe().values, self.data_df.loc[logical_array].values)
 
+    def test_apply_logical_filter_requires_boolean_dtype(self):
+        bed_table = self.__init_test_bed_table()
+        with self.assertRaises(ValueError) as context:
+            bed_table.apply_logical_filter(np.array([1, 0, 1, 0]))
+        self.assertIn("boolean dtype", str(context.exception))
+
     def test_region_subset(self):
         bed_table = self.__init_test_bed_table()
 

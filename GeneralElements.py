@@ -264,7 +264,11 @@ class GeneralElements(abc.ABC):
         - anno_name: Name of the annotation.
         - anno_arr: numpy array of shape (N,) or (N, 1) containing boolean values.
         '''
-        anno_arr = np.asarray(anno_arr, dtype=bool)
+        anno_arr = np.asarray(anno_arr)
+        if anno_arr.dtype != np.bool_:
+            raise ValueError(
+                f"Mask array must have boolean dtype; got dtype {anno_arr.dtype}"
+            )
         if anno_arr.shape[0] != self.get_num_regions():
             raise ValueError(f"Array length {anno_arr.shape[0]} does not match number of regions {self.get_num_regions()}")
         
