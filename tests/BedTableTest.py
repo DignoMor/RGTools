@@ -86,6 +86,25 @@ class TestBedTable(unittest.TestCase):
                                      bedtable.to_dataframe().values, 
                                      )
     
+    @staticmethod
+    def _brute_force_search_region(bed_table: BedTable3,
+                                  chrom: str,
+                                  start: int,
+                                  end: int,
+                                  overlapping_base: int = 1,
+                                  ) -> np.array:
+        '''
+        Reference overlap search: scan all regions (no binary search).
+        '''
+        result_inds = []
+        for i in range(len(bed_table)):
+            region = bed_table.get_region_by_index(i)
+            if region["chrom"] != chrom:
+                continue
+            if region["end"] - start >= overlapping_base and end - region["start"] >= overlapping_base:
+                result_inds.append(i)
+        return np.array(result_inds, dtype=int)
+    
     def setUp(self) -> None:
         '''
         Set up the test directory and data file path.
@@ -322,40 +341,47 @@ class TestBedTable3(TestBedTable):
                               )
     
     def test_search_region(self):
-        bed_table = self.__init_test_bed_table()
+        unsorted_bed_path = os.path.join(os.path.dirname(__file__),
+                                         "BedTableTestData",
+                                         "unsorted_search_region.bed3",
+                                         )
 
-        # Perfect match
-        chrom = "chr2"
-        start = 3
-        end = 7
+        bed_tables = {
+            "default": self.__init_test_bed_table(),
+            "unsorted_bt": BedTable3(enable_sort=False),
+        }
+        bed_tables["unsorted_bt"].load_from_file(unsorted_bed_path)
+        self.assertFalse(bed_tables["unsorted_bt"]._is_sorted())
 
-        region_idx = bed_table.search_region(chrom, start, end, 
-                                             overlapping_base=4,
-                                             )
+        search_cases = pd.DataFrame([
+            # default bed table
+            {"bed_table": "default", "chrom": "chr2", "start": 3, "end": 7, "overlapping_base": 4},
+            {"bed_table": "default", "chrom": "chr2", "start": 5, "end": 12, "overlapping_base": 2},
+            {"bed_table": "default", "chrom": "chr2", "start": 9, "end": 12, "overlapping_base": 1},
+            {"bed_table": "default", "chrom": "chr1", "start": 4, "end": 10, "overlapping_base": 1},
+            {"bed_table": "default", "chrom": "chr3", "start": 1, "end": 10, "overlapping_base": 1},
+            {"bed_table": "default", "chrom": "chr1", "start": 6, "end": 7, "overlapping_base": 1},
+            {"bed_table": "default", "chrom": "chr2", "start": 7, "end": 8, "overlapping_base": 1},
+            {"bed_table": "default", "chrom": "chr2", "start": 3, "end": 7, "overlapping_base": 5},
+            # unsorted bed table (enable_sort=False)
+            {"bed_table": "unsorted_bt", "chrom": "chr6", "start": 41161904, "end": 41162474, "overlapping_base": 1},
+            {"bed_table": "unsorted_bt", "chrom": "chr6", "start": 41073500, "end": 41074000, "overlapping_base": 1},
+        ])
 
-        self.assertArrayEqual(region_idx, np.array([2]))
-
-        # Non-perfect match
-        chrom = "chr2"
-        start = 5
-        end = 12
-
-        region_idx = bed_table.search_region(chrom, start, end,
-                                             overlapping_base=2,
-                                             )
-
-        self.assertArrayEqual(region_idx, np.array([2, 3]))
-
-        # No match
-        chrom = "chr2"
-        start = 9
-        end = 12
-
-        region_idx = bed_table.search_region(chrom, start, end,
-                                             overlapping_base=1,
-                                             )
-        
-        self.assertArrayEqual(region_idx, np.array([]))
+        for _, case in search_cases.iterrows():
+            bed_table = bed_tables[case["bed_table"]]
+            region_idx = bed_table.search_region(case["chrom"],
+                                                 int(case["start"]),
+                                                 int(case["end"]),
+                                                 overlapping_base=int(case["overlapping_base"]),
+                                                 )
+            expected_idx = self._brute_force_search_region(bed_table,
+                                                           case["chrom"],
+                                                           int(case["start"]),
+                                                           int(case["end"]),
+                                                           overlapping_base=int(case["overlapping_base"]),
+                                                           )
+            self.assertArrayEqual(region_idx, expected_idx)
 
     def test_search_array(self):
         test_array = np.array(range(10))

@@ -389,6 +389,30 @@ class BedTable3:
         - end: end location
         - overlapping_base: the number of overlapping bases required for a match
         '''
+        # Binary-search path requires regions sorted by (chrom, start, end).
+        # When sorting is disabled, build a temporary sorted index for the
+        # selected chromosome and map searched rows back to original indices.
+        if not self.enable_sort:
+            chrom_inds = np.where(self.get_chrom_names() == chrom)[0]
+            if len(chrom_inds) == 0:
+                return np.array([], dtype=int)
+
+            chrom_df = self._data_df.loc[chrom_inds, ["chrom", "start", "end"]].copy()
+            chrom_df["source_index"] = chrom_inds
+
+            chrom_bt = BedTable3Plus(extra_column_names=["source_index"],
+                                     extra_column_dtype=[int],
+                                     enable_sort=True,
+                                     )
+            chrom_bt.load_from_dataframe(chrom_df)
+
+            temp_hits = chrom_bt.search_region(chrom,
+                                               start,
+                                               end,
+                                               overlapping_base=overlapping_base,
+                                               )
+            return np.array(chrom_bt.get_region_extra_column("source_index")[temp_hits], dtype=int)
+
         # first narrow down with chrom
         chrom_left_bound, chrom_right_bound = self._search_array(self.get_chrom_names(), chrom)
         chrom_left_bound += 1
