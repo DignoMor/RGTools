@@ -1,0 +1,12 @@
+---
+alwaysApply: true
+---
+
+- When told to work on doc/test, never implement code 
+  unless explicitly told to do so.
+- This repository use unittest for testing. when testing, 
+  make sure the working directory is the parent 
+  directory of the repository.
+- This environment use .venv for virtual environment.
+- `.cursor/temp` contains temporary files for context, 
+  assume they will not be available in the future.
