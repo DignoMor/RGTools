@@ -569,6 +569,21 @@ class TestBedTable6(TestBedTable):
         self.assertEqual(output_df.loc[1, 4], ".")
         self.assertEqual(output_df.loc[2, 5], ".")
 
+    def test_copy_unstranded_strand(self):
+        bed_table = BedTable6()
+        bed_table.load_from_dataframe(pd.DataFrame({
+            "chrom": ["chr1", "chr2"],
+            "start": [1, 3],
+            "end": [10, 12],
+            "name": ["peak1", "peak2"],
+            "score": [100, 200],
+            "strand": [".", "."],
+        }))
+
+        copied_bed_table = bed_table.copy()
+        self.assertEqual(len(copied_bed_table), 2)
+        self.assertTrue(copied_bed_table.get_region_strands().isna().all())
+
 
     def test_apply_logical_filter(self):
         logical_array = [True, False, True, False]

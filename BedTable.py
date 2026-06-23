@@ -232,11 +232,12 @@ class BedTable3:
             column_map = {col: col for col in self.column_names}
 
         try:
-            self._data_df = pd.DataFrame(df[[column_map[col] for col in self.column_names]].values, 
-                                         columns=self.column_names, 
-                                         ).copy()
+            source_cols = [column_map[col] for col in self.column_names]
+            self._data_df = df[source_cols].copy()
+            self._data_df.columns = self.column_names
+            self._data_df.reset_index(drop=True, inplace=True)
 
-        except ValueError as e:
+        except (ValueError, KeyError) as e:
             raise BedTableLoadException(f"Error loading pd.DataFrame: number of columns does not match.")
         
         self._force_dtype()
@@ -507,12 +508,25 @@ class BedTable3:
                 raise ValueError(f"Unsupported dtype: {dtype_dict[key]}")
         return dtype_dict
 
+    def _replace_missing_marker(self, series, nan_val):
+        '''
+        Replace "." missing-value markers with typed NA values.
+
+        Object columns that contain pd.NA can trigger a pandas 1.4 bug where
+        Series.replace(".", ...) performs a scalar comparison and fails.
+        '''
+        if series.dtype == object:
+            return series.map(lambda x: nan_val if isinstance(x, str) and x == "." else x)
+        return series.replace(".", nan_val)
+
     def _force_dtype(self):
         '''
         Force the column types.
         '''
         for field, field_dtype in self.column_types.items():
-            self._data_df[field] = self._data_df[field].replace(".", PDDTYPE2NANVAL[field_dtype])
+            self._data_df[field] = self._replace_missing_marker(
+                self._data_df[field], PDDTYPE2NANVAL[field_dtype]
+            )
             self._data_df[field] = self._data_df[field].astype(field_dtype)
 
     def __len__(self) -> int:

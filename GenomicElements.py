@@ -43,6 +43,12 @@ class GenomicElements(GeneralElements):
     def region_file_path(self):
         return self._region_file_path
 
+    def get_num_regions(self):
+        '''
+        Return the number of regions without copying the bed table.
+        '''
+        return len(self._region_bt)
+
     @staticmethod
     def get_region_file_suffix2class_dict():
         '''
